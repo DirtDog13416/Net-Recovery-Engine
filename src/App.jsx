@@ -22,8 +22,8 @@ const asset = {
     ]
   },
   scenarios: [
-    ["Retail", 31200, 28, "Higher gross potential, but slower and more condition-sensitive."],
-    ["Wholesale as-is", 31800, 12, "Better speed, discounted for unresolved defects."],
+    ["Retail", 31200, 28, "Expected net recovery after condition discounts, repair assumptions, holding time, and selling friction."],
+    ["Wholesale as-is", 31800, 12, "Faster recovery path, but discounted for unresolved defects."],
     ["Repair + Wholesale", 35100, 14, "Best net recovery after focused reconditioning."],
     ["Auction", 28100, 9, "Fastest path, but lowest expected recovery."]
   ],
@@ -34,14 +34,14 @@ const asset = {
     ["Tires", "Fair", "Low", "Affects retail presentation."]
   ],
   configuration: [
-    ["Sleeper Cab Configuration", "$3,800", "Supports stronger wholesale and retail demand."],
-    ["APU Unit", "$1,200", "Adds buyer appeal for owner-operators and wholesale buyers."],
-    ["Aero Package", "$700", "Improves presentation and modestly supports value."]
+    ["Sleeper Cab Configuration", 3800, "Supports stronger wholesale and retail demand."],
+    ["APU Unit", 1200, "Adds buyer appeal for owner-operators and wholesale buyers."],
+    ["Aero Package", 700, "Improves presentation and modestly supports value."]
   ],
   compsBreakdown: [
-    ["Retail", 15, "$35,900 – $37,900", "$31,200", "Slower, more condition-sensitive"],
-    ["Wholesale", 17, "$30,200 – $32,200", "$31,800", "Most predictable for this defect profile"],
-    ["Auction", 10, "$27,500 – $29,500", "$28,100", "Fastest, lowest expected recovery"]
+    ["Retail", 15, "$35,900 – $37,900", "Slower, more condition-sensitive"],
+    ["Wholesale", 17, "$30,200 – $32,200", "Most predictable for this defect profile"],
+    ["Auction", 10, "$27,500 – $29,500", "Fastest, lowest expected recovery"]
   ],
   fmv: {
     retail: "$35,900 – $37,900",
@@ -153,8 +153,8 @@ function App() {
                 <h2>{asset.recommendation.action}</h2>
                 <div className="grid three">
                   <div><span>Expected Net Recovery</span><strong>{money(asset.recommendation.expectedNet)}</strong></div>
-                  <div><span>Improvement</span><strong>+{money(asset.recommendation.lift)}</strong></div>
-                  <div><span>Time to Liquidation</span><strong>{asset.recommendation.days} days</strong></div>
+                  <div><span>Expected Improvement</span><strong>+{money(asset.recommendation.lift)}</strong></div>
+                  <div><span>Expected Time to Liquidation</span><strong>{asset.recommendation.days} days</strong></div>
                 </div>
               </Card>
 
@@ -171,7 +171,11 @@ function App() {
               {asset.scenarios.map(([name, net, days, note]) => (
                 <div className="scenario" key={name}>
                   <div><strong>{name}</strong><p>{note}</p></div>
-                  <div><strong>{money(net)}</strong><span>{days} days</span></div>
+                  <div>
+                    <span>Expected Net Recovery</span>
+                    <strong>{money(net)}</strong>
+                    <span>Days to Liquidation: {days}</span>
+                  </div>
                 </div>
               ))}
             </Card>
@@ -183,7 +187,11 @@ function App() {
               {asset.components.map(([name, band, impact, note]) => (
                 <div className="scenario" key={name}>
                   <div><strong>{name}</strong><p>{note}</p></div>
-                  <div><strong>{band}</strong><span>Impact: {impact}</span></div>
+                  <div>
+                    <span>Condition</span>
+                    <strong>{band}</strong>
+                    <span>Value Impact: {impact}</span>
+                  </div>
                 </div>
               ))}
             </Card>
@@ -196,7 +204,10 @@ function App() {
               {asset.configuration.map(([name, value, note]) => (
                 <div className="scenario" key={name}>
                   <div><strong>{name}</strong><p>{note}</p></div>
-                  <div><strong>{value}</strong><span>Value contribution</span></div>
+                  <div>
+                    <span>Value Contribution</span>
+                    <strong>{money(value)}</strong>
+                  </div>
                 </div>
               ))}
             </Card>
@@ -216,16 +227,18 @@ function App() {
           {tab === "comps" && (
             <Card>
               <h2>Comparable Asset Outcomes</h2>
-              <p className="muted">42 comparable assets across retail, wholesale, and auction outcomes.</p>
-              {asset.compsBreakdown.map(([channel, count, range, net, note]) => (
+              <p className="muted">
+                Comps show observed market pricing ranges by channel. Expected net recovery is shown separately in Scenarios.
+              </p>
+              {asset.compsBreakdown.map(([channel, count, range, note]) => (
                 <div className="scenario" key={channel}>
                   <div>
                     <strong>{channel}</strong>
-                    <p>{count} comps · {note}</p>
+                    <p>{count} comparable assets · {note}</p>
                   </div>
                   <div>
-                    <strong>{net}</strong>
-                    <span>{range}</span>
+                    <span>Observed FMV Range</span>
+                    <strong>{range}</strong>
                   </div>
                 </div>
               ))}
