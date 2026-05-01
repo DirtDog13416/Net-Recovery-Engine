@@ -8,10 +8,8 @@ const asset = {
   conditionScore: 62,
   conditionBand: "Fair",
   comps: 42,
-  baseline: { path: "Retail", net: 31200, days: 28 },
   recommendation: {
     action: "Repair critical + move to Wholesale",
-    channel: "Wholesale",
     expectedNet: 35100,
     lift: 3900,
     days: 14,
@@ -43,11 +41,6 @@ const asset = {
     ["Wholesale", 17, "$30,200 – $32,200", "Most predictable for this defect profile"],
     ["Auction", 10, "$27,500 – $29,500", "Fastest, lowest recovery"]
   ],
-  fmv: {
-    retail: "$35,900 – $37,900",
-    wholesale: "$30,200 – $32,200",
-    auction: "$27,500 – $29,500"
-  },
   financial: {
     bookedResidual: 36000,
     expectedRecovery: 35100
@@ -69,11 +62,7 @@ function Card({ children, dark = false }) {
 function App() {
   const [started, setStarted] = useState(false);
   const [tab, setTab] = useState("recommendation");
-  const [assetCount, setAssetCount] = useState(8000);
-  const [averageValue, setAverageValue] = useState(65000);
 
-  const opportunityLow = Math.round(assetCount * 0.2 * 1500);
-  const opportunityHigh = Math.round(assetCount * 0.2 * 4000);
   const variance = asset.financial.expectedRecovery - asset.financial.bookedResidual;
 
   return (
@@ -85,43 +74,6 @@ function App() {
         </div>
         <button onClick={() => setStarted(true)}>Upload Inspection</button>
       </header>
-
-      <section className="grid two">
-        <Card>
-          <h2>Portfolio Behavior</h2>
-          <p className="muted">Current channel behavior</p>
-          <div className="barrow"><span>Retail</span><div><b style={{ width: "65%" }} /></div><strong>65%</strong></div>
-          <div className="barrow"><span>Wholesale</span><div><b style={{ width: "25%" }} /></div><strong>25%</strong></div>
-          <div className="barrow"><span>Auction</span><div><b style={{ width: "10%" }} /></div><strong>10%</strong></div>
-        </Card>
-
-        <Card>
-          <h2>NRE Suggested Mix</h2>
-          <p className="muted">Optimized for net recovery and speed</p>
-          <div className="barrow"><span>Retail</span><div><b style={{ width: "30%" }} /></div><strong>30%</strong></div>
-          <div className="barrow"><span>Wholesale</span><div><b style={{ width: "50%" }} /></div><strong>50%</strong></div>
-          <div className="barrow"><span>Auction</span><div><b style={{ width: "20%" }} /></div><strong>20%</strong></div>
-        </Card>
-      </section>
-
-      <Card>
-        <h2>Portfolio Impact</h2>
-        <div className="inputs">
-          <label>
-            Assets per Year
-            <input value={assetCount} onChange={(e) => setAssetCount(Number(e.target.value || 0))} />
-          </label>
-          <label>
-            Average Asset Value
-            <input value={averageValue} onChange={(e) => setAverageValue(Number(e.target.value || 0))} />
-          </label>
-        </div>
-        <div className="grid three">
-          <div className="metric"><span>Annual Opportunity</span><strong>{money(opportunityLow)} – {money(opportunityHigh)}</strong></div>
-          <div className="metric"><span>Opportunity Assets</span><strong>~{Math.round(assetCount * 0.2)}</strong></div>
-          <div className="metric"><span>Lift per Missed Decision</span><strong>$1,500 – $4,000</strong></div>
-        </div>
-      </Card>
 
       {!started ? (
         <Card>
@@ -135,11 +87,6 @@ function App() {
             <p className="muted">
               {asset.location} · Score {asset.conditionScore} ({asset.conditionBand}) · {asset.comps} comps
             </p>
-            <div className="grid three">
-              <div className="metric"><span>Current Path</span><strong>{asset.baseline.path}</strong><small>{money(asset.baseline.net)} · {asset.baseline.days} days</small></div>
-              <div className="metric"><span>Recommended</span><strong>{asset.recommendation.channel}</strong><small>Lift {money(asset.recommendation.lift)}</small></div>
-              <div className="metric"><span>Expected Recovery</span><strong>{money(asset.recommendation.expectedNet)}</strong><small>{asset.recommendation.days} days</small></div>
-            </div>
           </Card>
 
           <nav className="tabs">
@@ -155,10 +102,11 @@ function App() {
               <Card dark>
                 <span className="eyebrow">ACTION</span>
                 <h2>{asset.recommendation.action}</h2>
-                <div className="grid three">
-                  <div className="metric-dark"><span>Net</span><strong>{money(asset.recommendation.expectedNet)}</strong></div>
-                  <div className="metric-dark"><span>Lift</span><strong>+{money(asset.recommendation.lift)}</strong></div>
-                  <div className="metric-dark"><span>Days</span><strong>{asset.recommendation.days}</strong></div>
+
+                <div className="summary-row">
+                  <div><span>Net</span><strong>{money(asset.recommendation.expectedNet)}</strong></div>
+                  <div><span>Lift</span><strong>+{money(asset.recommendation.lift)}</strong></div>
+                  <div><span>Days</span><strong>{asset.recommendation.days}</strong></div>
                 </div>
               </Card>
 
@@ -178,10 +126,8 @@ function App() {
                     <strong>{name}</strong>
                     <p>{note}</p>
                   </div>
-                  <div className="scenario-metric">
-                    <span>Net</span>
-                    <strong>{money(net)}</strong>
-                    <span>{days} days</span>
+                  <div className="right-value">
+                    <strong>Net {money(net)}, {days} days</strong>
                   </div>
                 </div>
               ))}
@@ -197,9 +143,8 @@ function App() {
                     <strong>{name}</strong>
                     <p>{note}</p>
                   </div>
-                  <div className="scenario-metric">
-                    <strong>{band}</strong>
-                    <span>{impact} impact</span>
+                  <div className="right-value">
+                    <strong>{band}, {impact} impact</strong>
                   </div>
                 </div>
               ))}
@@ -209,16 +154,14 @@ function App() {
           {tab === "configuration" && (
             <Card>
               <h2>Configuration & Attachments</h2>
-              <p className="muted">Included directly in pricing and channel logic.</p>
               {asset.configuration.map(([name, value, note]) => (
                 <div className="scenario" key={name}>
                   <div>
                     <strong>{name}</strong>
                     <p>{note}</p>
                   </div>
-                  <div className="scenario-metric">
-                    <span>Value</span>
-                    <strong>{money(value)}</strong>
+                  <div className="right-value">
+                    <strong>Value {money(value)}</strong>
                   </div>
                 </div>
               ))}
@@ -228,10 +171,10 @@ function App() {
           {tab === "fmv" && (
             <Card>
               <h2>Fair Market Value</h2>
-              <div className="grid three">
-                <div className="metric"><span>Retail</span><strong>{asset.fmv.retail}</strong></div>
-                <div className="metric"><span>Wholesale</span><strong>{asset.fmv.wholesale}</strong></div>
-                <div className="metric"><span>Auction</span><strong>{asset.fmv.auction}</strong></div>
+              <div className="summary-row light">
+                <div><span>Retail</span><strong>$35,900 – $37,900</strong></div>
+                <div><span>Wholesale</span><strong>$30,200 – $32,200</strong></div>
+                <div><span>Auction</span><strong>$27,500 – $29,500</strong></div>
               </div>
             </Card>
           )}
@@ -239,16 +182,15 @@ function App() {
           {tab === "comps" && (
             <Card>
               <h2>Comparable Asset Outcomes</h2>
-              <p className="muted">Comps show observed market pricing ranges by channel. Net recovery is shown in Scenarios.</p>
+              <p className="muted">Comps show observed market pricing ranges by channel.</p>
               {asset.compsBreakdown.map(([channel, count, range, note]) => (
                 <div className="scenario" key={channel}>
                   <div>
                     <strong>{channel}</strong>
                     <p>{count} comps · {note}</p>
                   </div>
-                  <div className="scenario-metric">
-                    <span>FMV Range</span>
-                    <strong>{range}</strong>
+                  <div className="right-value">
+                    <strong>FMV Range {range}</strong>
                   </div>
                 </div>
               ))}
@@ -258,11 +200,10 @@ function App() {
           {tab === "financial" && (
             <Card>
               <h2>Financial Impact</h2>
-              <p className="muted">Expected recovery compared to booked residual.</p>
-              <div className="grid three">
-                <div className="metric"><span>Residual</span><strong>{money(asset.financial.bookedResidual)}</strong></div>
-                <div className="metric"><span>Recovery</span><strong>{money(asset.financial.expectedRecovery)}</strong></div>
-                <div className="metric"><span>Variance</span><strong>{money(variance)}</strong></div>
+              <div className="summary-row light">
+                <div><span>Residual</span><strong>{money(asset.financial.bookedResidual)}</strong></div>
+                <div><span>Recovery</span><strong>{money(asset.financial.expectedRecovery)}</strong></div>
+                <div><span>Variance</span><strong>{money(variance)}</strong></div>
               </div>
             </Card>
           )}
