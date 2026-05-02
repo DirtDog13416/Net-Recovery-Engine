@@ -60,6 +60,7 @@ button {
   color: #64748b;
 }
 
+/* Tabs */
 .tabs {
   display: flex;
   gap: 10px;
@@ -78,6 +79,7 @@ button {
   color: white;
 }
 
+/* Summary rows */
 .summary-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -112,6 +114,7 @@ button {
   line-height: 1.3;
 }
 
+/* Scenario rows */
 .scenario {
   display: flex;
   justify-content: space-between;
@@ -151,36 +154,7 @@ button {
   line-height: 1.4;
 }
 
-.eyebrow {
-  color: #94a3b8;
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  font-weight: 700;
-}
-
-footer {
-  text-align: center;
-  color: #64748b;
-  font-size: 12px;
-  padding: 24px;
-}
-
-@media (max-width: 800px) {
-  .hero,
-  .scenario {
-    flex-direction: column;
-  }
-
-  .summary-row {
-    grid-template-columns: 1fr;
-  }
-
-  .right-value {
-    text-align: left;
-    white-space: normal;
-    min-width: 0;
-    ...existing code above...
-
+/* Channel Mix Layout (THIS is what fixes your issue) */
 .grid {
   display: grid;
   gap: 20px;
@@ -211,10 +185,39 @@ footer {
   background: #0f172a;
 }
 
+/* Footer */
+.eyebrow {
+  color: #94a3b8;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+footer {
+  text-align: center;
+  color: #64748b;
+  font-size: 12px;
+  padding: 24px;
+}
+
+/* Mobile */
 @media (max-width: 800px) {
-  .two {
+  .hero,
+  .scenario {
+    flex-direction: column;
+  }
+
+  .summary-row {
     grid-template-columns: 1fr;
   }
-}
+
+  .right-value {
+    text-align: left;
+    white-space: normal;
+    min-width: 0;
+  }
+
+  .two {
+    grid-template-columns: 1fr;
   }
 }
