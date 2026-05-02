@@ -66,7 +66,53 @@ function App() {
   const variance = asset.financial.expectedRecovery - asset.financial.bookedResidual;
 
   return (
-    <div className="page">
+    <div className="page"><section className="grid two">
+  <Card>
+    <h2>Current Channel Mix</h2>
+    <p className="muted">How the company currently routes assets</p>
+
+    <div className="barrow">
+      <span>Retail</span>
+      <div><b style={{ width: "65%" }} /></div>
+      <strong>65%</strong>
+    </div>
+
+    <div className="barrow">
+      <span>Wholesale</span>
+      <div><b style={{ width: "25%" }} /></div>
+      <strong>25%</strong>
+    </div>
+
+    <div className="barrow">
+      <span>Auction</span>
+      <div><b style={{ width: "10%" }} /></div>
+      <strong>10%</strong>
+    </div>
+  </Card>
+
+  <Card>
+    <h2>NRE Predicted Channel Mix</h2>
+    <p className="muted">How NRE predicts assets should be routed</p>
+
+    <div className="barrow">
+      <span>Retail</span>
+      <div><b style={{ width: "30%" }} /></div>
+      <strong>30%</strong>
+    </div>
+
+    <div className="barrow">
+      <span>Wholesale</span>
+      <div><b style={{ width: "50%" }} /></div>
+      <strong>50%</strong>
+    </div>
+
+    <div className="barrow">
+      <span>Auction</span>
+      <div><b style={{ width: "20%" }} /></div>
+      <strong>20%</strong>
+    </div>
+  </Card>
+</section>
       <header className="hero">
         <div>
           <h1>Net Recovery Engine™</h1>
