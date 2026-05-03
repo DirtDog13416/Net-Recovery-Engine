@@ -63,7 +63,8 @@ function App() {
   const [started, setStarted] = useState(false);
   const [tab, setTab] = useState("recommendation");
   const [showComps, setShowComps] = useState(false);
-
+  
+const [showCompDetail, setShowCompDetail] = useState(false);
   const variance = asset.financial.expectedRecovery - asset.financial.bookedResidual;
 
   return (
