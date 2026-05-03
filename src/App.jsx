@@ -275,7 +275,7 @@ function App() {
             <td>$46,500</td>
             <td>Wholesale</td>
           </tr>
-          <tr>
+          <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
             <td>2018 Freightliner Cascadia</td>
             <td>515K miles</td>
             <td>$42,000</td>
