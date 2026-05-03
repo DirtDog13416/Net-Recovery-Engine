@@ -40,7 +40,6 @@ const asset = {
     ["Retail", 15, "$35,900 – $37,900", "Slower, more condition-sensitive"],
     ["Wholesale", 17, "$30,200 – $32,200", "Most predictable for this defect profile"],
     ["Auction", 10, "$27,500 – $29,500", "Fastest, lowest recovery"]
-  <button>View Comps (42)</button>
   ],
   financial: {
     bookedResidual: 36000,
@@ -241,6 +240,7 @@ function App() {
                   </div>
                 </div>
               ))}
+              <button>View Comps (42)</button>
             </Card>
           )}
 
