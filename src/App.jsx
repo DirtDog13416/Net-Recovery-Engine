@@ -240,7 +240,7 @@ function App() {
                   </div>
                 </div>
               ))}
-              <button onClick={() => alert("Show comps here")}>
+              <button onClick={() => setShowComps(true)}>
   View Comps (42)
 </button>
             </Card>
