@@ -313,7 +313,40 @@ function App() {
 )}
 
 {showCompDetail && (
-  ...
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10000
+  }}>
+    <div style={{
+      background: "white",
+      padding: "24px",
+      borderRadius: "12px",
+      width: "640px",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+    }}>
+      <h2>Comparable Sale Detail</h2>
+
+      <p><strong>Asset:</strong> 2019 Freightliner Cascadia</p>
+      <p><strong>Mileage:</strong> 482,000 miles</p>
+      <p><strong>Sale Price:</strong> $46,500</p>
+      <p><strong>Channel:</strong> Wholesale</p>
+      <p><strong>Source:</strong> Ritchie Bros.</p>
+      <p><strong>Sale Date:</strong> March 2025</p>
+      <p><strong>Condition:</strong> Similar mileage and condition profile</p>
+
+      <button onClick={() => setShowCompDetail(false)}>
+        Close
+      </button>
+    </div>
+  </div>
 )}
             </Card>
           )}
