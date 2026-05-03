@@ -308,6 +308,13 @@ function App() {
     </div>
   </div>
 )}
+              {showComps && (
+  ...
+)}
+
+{showCompDetail && (
+  ...
+)}
             </Card>
           )}
 
