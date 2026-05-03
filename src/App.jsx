@@ -244,6 +244,70 @@ function App() {
               <button onClick={() => setShowComps(true)}>
   View Comps (42)
 </button>
+              {showComps && (
+  <div style={{
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "rgba(0,0,0,0.45)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: "white",
+      padding: "24px",
+      borderRadius: "12px",
+      width: "720px",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+    }}>
+      <h2>Comparable Sales</h2>
+      <p>Page 1 of 9</p>
+
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <tbody>
+          <tr>
+            <td>2019 Freightliner Cascadia</td>
+            <td>482K miles</td>
+            <td>$46,500</td>
+            <td>Wholesale</td>
+          </tr>
+          <tr>
+            <td>2018 Freightliner Cascadia</td>
+            <td>515K miles</td>
+            <td>$42,000</td>
+            <td>Auction</td>
+          </tr>
+          <tr>
+            <td>2020 Peterbilt 579</td>
+            <td>438K miles</td>
+            <td>$51,200</td>
+            <td>Retail</td>
+          </tr>
+          <tr>
+            <td>2017 Kenworth T680</td>
+            <td>601K miles</td>
+            <td>$38,400</td>
+            <td>Auction</td>
+          </tr>
+          <tr>
+            <td>2019 Volvo VNL</td>
+            <td>490K miles</td>
+            <td>$44,800</td>
+            <td>Wholesale</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button onClick={() => setShowComps(false)}>
+        Close
+      </button>
+    </div>
+  </div>
+)}
             </Card>
           )}
 
