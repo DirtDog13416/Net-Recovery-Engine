@@ -62,6 +62,7 @@ function Card({ children, dark = false }) {
 function App() {
   const [started, setStarted] = useState(false);
   const [tab, setTab] = useState("recommendation");
+  const [showComps, setShowComps] = useState(false);
 
   const variance = asset.financial.expectedRecovery - asset.financial.bookedResidual;
 
