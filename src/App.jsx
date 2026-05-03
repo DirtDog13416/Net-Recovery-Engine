@@ -240,7 +240,9 @@ function App() {
                   </div>
                 </div>
               ))}
-              <button>View Comps (42)</button>
+              <button onClick={() => alert("Show comps here")}>
+  View Comps (42)
+</button>
             </Card>
           )}
 
