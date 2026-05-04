@@ -309,9 +309,6 @@ function App() {
     </div>
   </div>
 )}
-              {showComps && (
-  ...
-)}
 
 {showCompDetail && (
   <div style={{
