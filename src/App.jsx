@@ -274,6 +274,7 @@ function App() {
             <td>482K miles</td>
             <td>$46,500</td>
             <td>Wholesale</td>
+           <td><button onClick={() => alert("Comp clicked")}>View Detail</button></td>
           </tr>
           <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
             <td>2018 Freightliner Cascadia</td>
