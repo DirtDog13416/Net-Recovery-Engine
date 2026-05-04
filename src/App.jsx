@@ -212,6 +212,25 @@ function App() {
                   </div>
                 </div>
               ))}
+              <div className="scenario">
+  <div>
+    <strong>Service History</strong>
+    <p>Complete maintenance records available</p>
+  </div>
+  <div className="right-value">
+    <strong>Complete</strong>
+  </div>
+</div>
+
+<div className="scenario">
+  <div>
+    <strong>Warranty Status</strong>
+    <p>Active remaining coverage</p>
+  </div>
+  <div className="right-value">
+    <strong>Active</strong>
+  </div>
+</div>
             </Card>
           )}
 
