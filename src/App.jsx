@@ -309,7 +309,6 @@ function App() {
     </div>
   </div>
 )}
-
 {showCompDetail && (
   <div style={{
     position: "fixed",
