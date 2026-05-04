@@ -269,7 +269,7 @@ function App() {
 
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <tbody>
-         <tr onClick={() => alert("Comp clicked")} style={{ cursor: "pointer" }}>
+         <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
             <td>2019 Freightliner Cascadia</td>
             <td>482K miles</td>
             <td>$46,500</td>
