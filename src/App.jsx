@@ -26,11 +26,11 @@ const asset = {
     ["Auction", 28100, 9, "Fastest path, but lowest expected recovery."]
   ],
   components: [
-  ["Engine", "Poor", "High", "Turbo failure materially suppresses buyer demand."],
-  ["Drivetrain", "Fair", "Medium", "Usable, but below benchmark."],
-  ["Brakes", "Fair", "Medium", "Adds reconditioning friction."],
-  ["Tires", "Fair", "Low", "Affects retail presentation."]
-],
+    ["Engine", "Poor", 2400, 5800, "Turbo failure materially suppresses buyer demand."],
+    ["Drivetrain", "Fair", 1200, 2100, "Usable, but below benchmark."],
+    ["Brakes", "Fair", 900, 1500, "Adds reconditioning friction."],
+    ["Tires", "Fair", 1100, 1700, "Affects retail presentation."]
+  ],
   configuration: [
     ["Sleeper Cab Configuration", 3800, "Supports stronger wholesale and retail demand."],
     ["APU Unit", 1200, "Adds buyer appeal for owner-operators and wholesale buyers."],
@@ -62,99 +62,135 @@ function Card({ children, dark = false }) {
 function App() {
   const [started, setStarted] = useState(false);
   const [tab, setTab] = useState("recommendation");
+
   const [showComps, setShowComps] = useState(false);
   const [showCompDetail, setShowCompDetail] = useState(false);
+
+  const [assetCount, setAssetCount] = useState(100);
   const [currentRetail, setCurrentRetail] = useState(65);
-const [currentWholesale, setCurrentWholesale] = useState(25);
-const [currentAuction, setCurrentAuction] = useState(10);
+  const [currentWholesale, setCurrentWholesale] = useState(25);
+  const [currentAuction, setCurrentAuction] = useState(10);
+
+  const predictedRetail = 30;
+  const predictedWholesale = 50;
+  const predictedAuction = 20;
+
   const variance = asset.financial.expectedRecovery - asset.financial.bookedResidual;
 
+  const totalChannelDifference =
+    Math.abs(currentRetail - predictedRetail) +
+    Math.abs(currentWholesale - predictedWholesale) +
+    Math.abs(currentAuction - predictedAuction);
+
+  const estimatedMisroutedAssets = Math.round(assetCount * (totalChannelDifference / 2 / 100));
+
+  const inputStyle = {
+    width: "32px",
+    border: "none",
+    background: "transparent",
+    fontWeight: 800,
+    fontSize: "16px",
+    textAlign: "right",
+    outline: "none"
+  };
+
+  const percentInput = (value, setter) => (
+    <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => setter(Number(e.target.value.replace(/[^0-9]/g, "")))}
+        style={inputStyle}
+      />
+      <strong>%</strong>
+    </span>
+  );
+
   return (
-    <div className="page"><section className="grid two">
-  <Card>
-    <h2>Current Channel Mix</h2>
-    <p className="muted">How the company currently routes assets</p>
+    <div className="page">
+      <section className="grid two">
+        <Card>
+          <h2>Current Channel Mix</h2>
+          <p className="muted">How the company currently routes assets</p>
 
-    <div className="barrow">
-  <span>Retail</span>
-  <div><b style={{ width: `${currentRetail}%` }} /></div>
-  <input
-    type="number"
-    value={currentRetail}
-    onChange={(e) => setCurrentRetail(Number(e.target.value))}
-    style={{
-  width: "56px",
-  padding: "6px 8px",
-  borderRadius: "8px",
-  border: "1px solid #cbd5e1",
-  fontWeight: 700,
-  textAlign: "right"
-}}
-  />
-</div>
+          <div className="barrow">
+            <span>Retail</span>
+            <div><b style={{ width: `${currentRetail}%` }} /></div>
+            {percentInput(currentRetail, setCurrentRetail)}
+          </div>
 
-<div className="barrow">
-  <span>Wholesale</span>
-  <div><b style={{ width: `${currentWholesale}%` }} /></div>
-  style={{
-  width: "44px",
-  border: "none",
-  background: "transparent",
-  fontWeight: 800,
-  fontSize: "16px",
-  textAlign: "right",
-  outline: "none"
-}}
-  />
-</div>
+          <div className="barrow">
+            <span>Wholesale</span>
+            <div><b style={{ width: `${currentWholesale}%` }} /></div>
+            {percentInput(currentWholesale, setCurrentWholesale)}
+          </div>
 
-<div className="barrow">
-  <span>Auction</span>
-  <div><b style={{ width: `${currentAuction}%` }} /></div>
-  <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-  <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-  <input
-    type="text"
-    value={currentRetail}
-    onChange={(e) => setCurrentRetail(Number(e.target.value))}
-    style={{
-      width: "32px",
-      border: "none",
-      background: "transparent",
-      fontWeight: 800,
-      fontSize: "16px",
-      textAlign: "right",
-      outline: "none"
-    }}
-  />
-  <strong>%</strong>
-</span>
-</div>
-  </Card>
+          <div className="barrow">
+            <span>Auction</span>
+            <div><b style={{ width: `${currentAuction}%` }} /></div>
+            {percentInput(currentAuction, setCurrentAuction)}
+          </div>
+        </Card>
 
-  <Card>
-    <h2>NRE Predicted Channel Mix</h2>
-    <p className="muted">How NRE predicts assets should be routed</p>
+        <Card>
+          <h2>NRE Predicted Channel Mix</h2>
+          <p className="muted">How NRE predicts assets should be routed</p>
 
-  <div className="barrow">
-  <span>Retail</span>
-  <div><b style={{ width: "30%" }} /></div>
-  <strong>30%</strong>
-</div>
+          <div className="barrow">
+            <span>Retail</span>
+            <div><b style={{ width: "30%" }} /></div>
+            <strong>30%</strong>
+          </div>
 
-<div className="barrow">
-  <span>Wholesale</span>
-  <div><b style={{ width: "50%" }} /></div>
-  <strong>50%</strong>
-</div>
+          <div className="barrow">
+            <span>Wholesale</span>
+            <div><b style={{ width: "50%" }} /></div>
+            <strong>50%</strong>
+          </div>
 
-<div className="barrow">
-  <span>Auction</span>
-  <div><b style={{ width: "20%" }} /></div>
-  <strong>20%</strong>
-</div>
-  </Card>
-</section>
+          <div className="barrow">
+            <span>Auction</span>
+            <div><b style={{ width: "20%" }} /></div>
+            <strong>20%</strong>
+          </div>
+        </Card>
+      </section>
+
+      <Card>
+        <h2>Channel Opportunity</h2>
+        <p className="muted">Estimate how many assets may be routed differently under the NRE channel mix.</p>
+
+        <div className="summary-row light">
+          <div>
+            <span>Asset Count</span>
+            <strong>
+              <input
+                type="text"
+                value={assetCount}
+                onChange={(e) => setAssetCount(Number(e.target.value.replace(/[^0-9]/g, "")))}
+                style={{
+                  width: "80px",
+                  border: "none",
+                  background: "transparent",
+                  fontWeight: 800,
+                  fontSize: "24px",
+                  textAlign: "center",
+                  outline: "none"
+                }}
+              />
+            </strong>
+          </div>
+          <div>
+            <span>Estimated Misrouted Assets</span>
+            <strong>{estimatedMisroutedAssets}</strong>
+          </div>
+          <div>
+            <span>Channel Mix Difference</span>
+            <strong>{Math.round(totalChannelDifference / 2)}%</strong>
+          </div>
+        </div>
+      </Card>
+
       <header className="hero">
         <div>
           <h1>Net Recovery Engine™</h1>
@@ -225,17 +261,26 @@ const [currentAuction, setCurrentAuction] = useState(10);
           {tab === "condition" && (
             <Card>
               <h2>Major Component Condition</h2>
-              {asset.components.map(([name, band, impact, note]) => (
-                <div className="scenario" key={name}>
-                  <div>
-                    <strong>{name}</strong>
-                    <p>{note}</p>
+              {asset.components.map(([name, band, repairCost, valueLift, note]) => {
+                const netBenefit = valueLift - repairCost;
+
+                return (
+                  <div className="scenario" key={name}>
+                    <div>
+                      <strong>{name}</strong>
+                      <p>{note}</p>
+                    </div>
+                    <div className="right-value">
+                      <strong>{band}</strong>
+                      <p>
+                        Repair {money(repairCost)} · Lift {money(valueLift)} · Net{" "}
+                        {netBenefit >= 0 ? "+" : ""}
+                        {money(netBenefit)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="right-value">
-                    <strong>{band}, {impact} impact</strong>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </Card>
           )}
 
@@ -253,25 +298,26 @@ const [currentAuction, setCurrentAuction] = useState(10);
                   </div>
                 </div>
               ))}
-              <div className="scenario">
-  <div>
-    <strong>Service History</strong>
-    <p>Complete maintenance records available</p>
-  </div>
-  <div className="right-value">
-    <strong>Complete</strong>
-  </div>
-</div>
 
-<div className="scenario">
-  <div>
-    <strong>Warranty Status</strong>
-    <p>Active remaining coverage</p>
-  </div>
-  <div className="right-value">
-    <strong>Active</strong>
-  </div>
-</div>
+              <div className="scenario">
+                <div>
+                  <strong>Service History</strong>
+                  <p>Complete maintenance records available</p>
+                </div>
+                <div className="right-value">
+                  <strong>Complete</strong>
+                </div>
+              </div>
+
+              <div className="scenario">
+                <div>
+                  <strong>Warranty Status</strong>
+                  <p>Active remaining coverage</p>
+                </div>
+                <div className="right-value">
+                  <strong>Active</strong>
+                </div>
+              </div>
             </Card>
           )}
 
@@ -289,7 +335,8 @@ const [currentAuction, setCurrentAuction] = useState(10);
           {tab === "comps" && (
             <Card>
               <h2>Comparable Asset Outcomes</h2>
-              <p className="muted">Comps show observed market pricing ranges by channel.</p>
+              <p className="muted">Comps show how similar assets have actually sold across channels.</p>
+
               {asset.compsBreakdown.map(([channel, count, range, note]) => (
                 <div className="scenario" key={channel}>
                   <div>
@@ -301,109 +348,112 @@ const [currentAuction, setCurrentAuction] = useState(10);
                   </div>
                 </div>
               ))}
+
               <button onClick={() => setShowComps(true)}>
-  View Comps (42)
-</button>
+                View Comps (42)
+              </button>
+
               {showComps && (
-  <div style={{
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(0,0,0,0.45)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999
-  }}>
-    <div style={{
-      background: "white",
-      padding: "24px",
-      borderRadius: "12px",
-      width: "720px",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
-    }}>
-      <h2>Comparable Sales</h2>
-      <p>Page 1 of 9</p>
+                <div style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  background: "rgba(0,0,0,0.45)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 9999
+                }}>
+                  <div style={{
+                    background: "white",
+                    padding: "24px",
+                    borderRadius: "12px",
+                    width: "720px",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+                  }}>
+                    <h2>Comparable Sales</h2>
+                    <p>Page 1 of 9</p>
 
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <tbody>
-         <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
-  <td>2019 Freightliner Cascadia</td>
-  <td>482K miles</td>
-  <td>$46,500</td>
-  <td>Wholesale</td>
-</tr>
-          <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
-            <td>2018 Freightliner Cascadia</td>
-            <td>515K miles</td>
-            <td>$42,000</td>
-            <td>Auction</td>
-          </tr>
-          <tr>
-            <td>2020 Peterbilt 579</td>
-            <td>438K miles</td>
-            <td>$51,200</td>
-            <td>Retail</td>
-          </tr>
-          <tr>
-            <td>2017 Kenworth T680</td>
-            <td>601K miles</td>
-            <td>$38,400</td>
-            <td>Auction</td>
-          </tr>
-          <tr>
-            <td>2019 Volvo VNL</td>
-            <td>490K miles</td>
-            <td>$44,800</td>
-            <td>Wholesale</td>
-          </tr>
-        </tbody>
-      </table>
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <tbody>
+                        <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
+                          <td>2019 Freightliner Cascadia</td>
+                          <td>482K miles</td>
+                          <td>$46,500</td>
+                          <td>Wholesale</td>
+                        </tr>
+                        <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
+                          <td>2018 Freightliner Cascadia</td>
+                          <td>515K miles</td>
+                          <td>$42,000</td>
+                          <td>Auction</td>
+                        </tr>
+                        <tr>
+                          <td>2020 Peterbilt 579</td>
+                          <td>438K miles</td>
+                          <td>$51,200</td>
+                          <td>Retail</td>
+                        </tr>
+                        <tr>
+                          <td>2017 Kenworth T680</td>
+                          <td>601K miles</td>
+                          <td>$38,400</td>
+                          <td>Auction</td>
+                        </tr>
+                        <tr>
+                          <td>2019 Volvo VNL</td>
+                          <td>490K miles</td>
+                          <td>$44,800</td>
+                          <td>Wholesale</td>
+                        </tr>
+                      </tbody>
+                    </table>
 
-      <button onClick={() => setShowComps(false)}>
-        Close
-      </button>
-    </div>
-  </div>
-)}
-{showCompDetail && (
-  <div style={{
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "rgba(0,0,0,0.45)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 10000
-  }}>
-    <div style={{
-      background: "white",
-      padding: "24px",
-      borderRadius: "12px",
-      width: "640px",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
-    }}>
-      <h2>Comparable Sale Detail</h2>
+                    <button onClick={() => setShowComps(false)}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
 
-      <p><strong>Asset:</strong> 2019 Freightliner Cascadia</p>
-      <p><strong>Mileage:</strong> 482,000 miles</p>
-      <p><strong>Sale Price:</strong> $46,500</p>
-      <p><strong>Channel:</strong> Wholesale</p>
-      <p><strong>Source:</strong> Ritchie Bros.</p>
-      <p><strong>Sale Date:</strong> March 2025</p>
-      <p><strong>Condition:</strong> Similar mileage and condition profile</p>
+              {showCompDetail && (
+                <div style={{
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  background: "rgba(0,0,0,0.45)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 10000
+                }}>
+                  <div style={{
+                    background: "white",
+                    padding: "24px",
+                    borderRadius: "12px",
+                    width: "640px",
+                    boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
+                  }}>
+                    <h2>Comparable Sale Detail</h2>
 
-      <button onClick={() => setShowCompDetail(false)}>
-        Close
-      </button>
-    </div>
-  </div>
-)}
+                    <p><strong>Asset:</strong> 2019 Freightliner Cascadia</p>
+                    <p><strong>Mileage:</strong> 482,000 miles</p>
+                    <p><strong>Sale Price:</strong> $46,500</p>
+                    <p><strong>Channel:</strong> Wholesale</p>
+                    <p><strong>Source:</strong> Ritchie Bros.</p>
+                    <p><strong>Sale Date:</strong> March 2025</p>
+                    <p><strong>Condition:</strong> Similar mileage and condition profile</p>
+
+                    <button onClick={() => setShowCompDetail(false)}>
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
             </Card>
           )}
 
