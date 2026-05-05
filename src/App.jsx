@@ -76,22 +76,37 @@ const [currentAuction, setCurrentAuction] = useState(10);
     <p className="muted">How the company currently routes assets</p>
 
     <div className="barrow">
-      <span>Retail</span>
-      <div><b style={{ width: "65%" }} /></div>
-      <strong>65%</strong>
-    </div>
+  <span>Retail</span>
+  <div><b style={{ width: `${currentRetail}%` }} /></div>
+  <input
+    type="number"
+    value={currentRetail}
+    onChange={(e) => setCurrentRetail(Number(e.target.value))}
+    style={{ width: "64px" }}
+  />
+</div>
 
-    <div className="barrow">
-      <span>Wholesale</span>
-      <div><b style={{ width: "25%" }} /></div>
-      <strong>25%</strong>
-    </div>
+<div className="barrow">
+  <span>Wholesale</span>
+  <div><b style={{ width: `${currentWholesale}%` }} /></div>
+  <input
+    type="number"
+    value={currentWholesale}
+    onChange={(e) => setCurrentWholesale(Number(e.target.value))}
+    style={{ width: "64px" }}
+  />
+</div>
 
-    <div className="barrow">
-      <span>Auction</span>
-      <div><b style={{ width: "10%" }} /></div>
-      <strong>10%</strong>
-    </div>
+<div className="barrow">
+  <span>Auction</span>
+  <div><b style={{ width: `${currentAuction}%` }} /></div>
+  <input
+    type="number"
+    value={currentAuction}
+    onChange={(e) => setCurrentAuction(Number(e.target.value))}
+    style={{ width: "64px" }}
+  />
+</div>
   </Card>
 
   <Card>
