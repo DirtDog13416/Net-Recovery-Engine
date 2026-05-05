@@ -98,37 +98,22 @@ const [currentAuction, setCurrentAuction] = useState(10);
     <h2>NRE Predicted Channel Mix</h2>
     <p className="muted">How NRE predicts assets should be routed</p>
 
-   <div className="barrow">
+  <div className="barrow">
   <span>Retail</span>
-  <div><b style={{ width: `${currentRetail}%` }} /></div>
-  <input
-    type="number"
-    value={currentRetail}
-    onChange={(e) => setCurrentRetail(Number(e.target.value))}
-    style={{ width: "64px" }}
-  />
+  <div><b style={{ width: "30%" }} /></div>
+  <strong>30%</strong>
 </div>
 
 <div className="barrow">
   <span>Wholesale</span>
-  <div><b style={{ width: `${currentWholesale}%` }} /></div>
-  <input
-    type="number"
-    value={currentWholesale}
-    onChange={(e) => setCurrentWholesale(Number(e.target.value))}
-    style={{ width: "64px" }}
-  />
+  <div><b style={{ width: "50%" }} /></div>
+  <strong>50%</strong>
 </div>
 
 <div className="barrow">
   <span>Auction</span>
-  <div><b style={{ width: `${currentAuction}%` }} /></div>
-  <input
-    type="number"
-    value={currentAuction}
-    onChange={(e) => setCurrentAuction(Number(e.target.value))}
-    style={{ width: "64px" }}
-  />
+  <div><b style={{ width: "20%" }} /></div>
+  <strong>20%</strong>
 </div>
   </Card>
 </section>
