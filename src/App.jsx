@@ -96,17 +96,14 @@ const [currentAuction, setCurrentAuction] = useState(10);
 <div className="barrow">
   <span>Wholesale</span>
   <div><b style={{ width: `${currentWholesale}%` }} /></div>
-  <input
-    type="number"
-    value={currentWholesale}
-    onChange={(e) => setCurrentWholesale(Number(e.target.value))}
-    style={{
-  width: "56px",
-  padding: "6px 8px",
-  borderRadius: "8px",
-  border: "1px solid #cbd5e1",
-  fontWeight: 700,
-  textAlign: "right"
+  style={{
+  width: "44px",
+  border: "none",
+  background: "transparent",
+  fontWeight: 800,
+  fontSize: "16px",
+  textAlign: "right",
+  outline: "none"
 }}
   />
 </div>
