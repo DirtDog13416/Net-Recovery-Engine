@@ -112,6 +112,7 @@ const [currentAuction, setCurrentAuction] = useState(10);
   <span>Auction</span>
   <div><b style={{ width: `${currentAuction}%` }} /></div>
   <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
+  <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
   <input
     type="text"
     value={currentRetail}
