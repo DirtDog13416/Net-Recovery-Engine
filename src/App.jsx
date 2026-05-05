@@ -111,19 +111,23 @@ const [currentAuction, setCurrentAuction] = useState(10);
 <div className="barrow">
   <span>Auction</span>
   <div><b style={{ width: `${currentAuction}%` }} /></div>
+  <span style={{ display: "flex", alignItems: "center", gap: "2px" }}>
   <input
     type="text"
-    value={currentAuction}
-    onChange={(e) => setCurrentAuction(Number(e.target.value))}
+    value={currentRetail}
+    onChange={(e) => setCurrentRetail(Number(e.target.value))}
     style={{
-  width: "56px",
-  padding: "6px 8px",
-  borderRadius: "8px",
-  border: "1px solid #cbd5e1",
-  fontWeight: 700,
-  textAlign: "right"
-}}
+      width: "32px",
+      border: "none",
+      background: "transparent",
+      fontWeight: 800,
+      fontSize: "16px",
+      textAlign: "right",
+      outline: "none"
+    }}
   />
+  <strong>%</strong>
+</span>
 </div>
   </Card>
 
