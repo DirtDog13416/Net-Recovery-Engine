@@ -112,7 +112,7 @@ const [currentAuction, setCurrentAuction] = useState(10);
   <span>Auction</span>
   <div><b style={{ width: `${currentAuction}%` }} /></div>
   <input
-    type="number"
+    type="text"
     value={currentAuction}
     onChange={(e) => setCurrentAuction(Number(e.target.value))}
     style={{
