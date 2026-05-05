@@ -82,7 +82,14 @@ const [currentAuction, setCurrentAuction] = useState(10);
     type="number"
     value={currentRetail}
     onChange={(e) => setCurrentRetail(Number(e.target.value))}
-    style={{ width: "64px" }}
+    style={{
+  width: "56px",
+  padding: "6px 8px",
+  borderRadius: "8px",
+  border: "1px solid #cbd5e1",
+  fontWeight: 700,
+  textAlign: "right"
+}}
   />
 </div>
 
@@ -93,7 +100,14 @@ const [currentAuction, setCurrentAuction] = useState(10);
     type="number"
     value={currentWholesale}
     onChange={(e) => setCurrentWholesale(Number(e.target.value))}
-    style={{ width: "64px" }}
+    style={{
+  width: "56px",
+  padding: "6px 8px",
+  borderRadius: "8px",
+  border: "1px solid #cbd5e1",
+  fontWeight: 700,
+  textAlign: "right"
+}}
   />
 </div>
 
@@ -104,7 +118,14 @@ const [currentAuction, setCurrentAuction] = useState(10);
     type="number"
     value={currentAuction}
     onChange={(e) => setCurrentAuction(Number(e.target.value))}
-    style={{ width: "64px" }}
+    style={{
+  width: "56px",
+  padding: "6px 8px",
+  borderRadius: "8px",
+  border: "1px solid #cbd5e1",
+  fontWeight: 700,
+  textAlign: "right"
+}}
   />
 </div>
   </Card>
