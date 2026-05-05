@@ -26,11 +26,11 @@ const asset = {
     ["Auction", 28100, 9, "Fastest path, but lowest expected recovery."]
   ],
   components: [
-    ["Engine", "Poor", "High", "Turbo failure materially suppresses buyer demand."],
-    ["Drivetrain", "Fair", "Medium", "Usable, but below benchmark."],
-    ["Brakes", "Fair", "Medium", "Adds reconditioning friction."],
-    ["Tires", "Fair", "Low", "Affects retail presentation."]
-  ],
+  ["Engine", "Poor", "High", "Turbo failure materially suppresses buyer demand."],
+  ["Drivetrain", "Fair", "Medium", "Usable, but below benchmark."],
+  ["Brakes", "Fair", "Medium", "Adds reconditioning friction."],
+  ["Tires", "Fair", "Low", "Affects retail presentation."]
+],
   configuration: [
     ["Sleeper Cab Configuration", 3800, "Supports stronger wholesale and retail demand."],
     ["APU Unit", 1200, "Adds buyer appeal for owner-operators and wholesale buyers."],
