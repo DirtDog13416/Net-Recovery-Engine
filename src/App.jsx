@@ -1,30 +1,32 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
+import {
+  AlertTriangle,
+  Calculator,
+  CheckCircle,
+  FileText,
+  Gauge,
+  LineChart,
+  Plus,
+  ShieldCheck,
+  Truck,
+  Wrench
+} from "lucide-react";
 import "./styles.css";
 
-const asset = {
+const initialAsset = {
   header: "2019 Freightliner Cascadia",
   location: "Memphis, TN",
-  conditionScore: 62,
+  year: 2019,
+  make: "Freightliner",
+  model: "Cascadia",
+  mileage: 410000,
+  age: 4,
+  conditionScore: 3.2,
   conditionBand: "Fair",
-  comps: 42,
-  recommendation: {
-    action: "Repair critical + move to Wholesale",
-    expectedNet: 35100,
-    lift: 3900,
-    days: 14,
-    why: [
-      "Engine condition suppresses retail buyer demand.",
-      "Wholesale comps are tighter and more predictable for this defect profile.",
-      "Sleeper and APU configuration add value, but not enough to justify longer retail exposure."
-    ]
+  financial: {
+    bookedResidual: 36000
   },
-  scenarios: [
-    ["Retail", 31200, 28, "Higher gross potential, but slower and more condition-sensitive."],
-    ["Wholesale as-is", 31800, 12, "Faster recovery path, discounted for unresolved defects."],
-    ["Repair + Wholesale", 35100, 14, "Best net recovery after focused reconditioning."],
-    ["Auction", 28100, 9, "Fastest path, but lowest expected recovery."]
-  ],
   components: [
     ["Engine", "Poor", 2400, 5800, "Turbo failure materially suppresses buyer demand."],
     ["Drivetrain", "Fair", 1200, 2100, "Usable, but below benchmark."],
@@ -32,56 +34,233 @@ const asset = {
     ["Tires", "Fair", 1100, 1700, "Affects retail presentation."]
   ],
   configuration: [
-    ["Sleeper Cab Configuration", 3800, "Supports stronger wholesale and retail demand."],
-    ["APU Unit", 1200, "Adds buyer appeal for owner-operators and wholesale buyers."],
-    ["Aero Package", 700, "Improves presentation and modestly supports value."]
-  ],
-  compsBreakdown: [
-    ["Retail", 15, "$35,900 – $37,900", "Slower, more condition-sensitive"],
-    ["Wholesale", 17, "$30,200 – $32,200", "Most predictable for this defect profile"],
-    ["Auction", 10, "$27,500 – $29,500", "Fastest, lowest recovery"]
-  ],
-  financial: {
-    bookedResidual: 36000,
-    expectedRecovery: 35100
-  }
+    ["Sleeper Cab Configuration", 0.06, "Supports stronger wholesale and retail demand."],
+    ["APU Unit", 0.07, "Adds buyer appeal for owner-operators and wholesale buyers."],
+    ["Aero Package", 0.03, "Improves presentation and modestly supports value."],
+    ["Full Service Records", 0.04, "Improves buyer confidence and valuation support."],
+    ["Known Critical Defect", -0.08, "Material repair issue limits retail demand."]
+  ]
 };
+
+const initialComps = [
+  {
+    id: 1,
+    asset: "2019 Freightliner Cascadia",
+    mileage: 482000,
+    value: 46500,
+    channel: "Wholesale",
+    source: "Ritchie Bros.",
+    saleDate: "Mar 2025",
+    relevance: 87,
+    included: true,
+    saleType: "Auction Result"
+  },
+  {
+    id: 2,
+    asset: "2018 Freightliner Cascadia",
+    mileage: 515000,
+    value: 42000,
+    channel: "Auction",
+    source: "IronPlanet",
+    saleDate: "Feb 2025",
+    relevance: 78,
+    included: true,
+    saleType: "Auction Result"
+  },
+  {
+    id: 3,
+    asset: "2020 Peterbilt 579",
+    mileage: 438000,
+    value: 51200,
+    channel: "Retail",
+    source: "Dealer Listing",
+    saleDate: "Apr 2025",
+    relevance: 61,
+    included: true,
+    saleType: "Dealer Listing"
+  },
+  {
+    id: 4,
+    asset: "2017 Kenworth T680",
+    mileage: 601000,
+    value: 38400,
+    channel: "Auction",
+    source: "Auction Result",
+    saleDate: "Jan 2025",
+    relevance: 54,
+    included: false,
+    saleType: "Auction Result"
+  },
+  {
+    id: 5,
+    asset: "2019 Volvo VNL",
+    mileage: 490000,
+    value: 44800,
+    channel: "Wholesale",
+    source: "Internal Sale",
+    saleDate: "Mar 2025",
+    relevance: 74,
+    included: true,
+    saleType: "Internal Sale"
+  }
+];
+
+const conditionMultiplierTable = [
+  { min: 4.5, label: "Excellent", multiplier: 1.1 },
+  { min: 3.5, label: "Good", multiplier: 1.05 },
+  { min: 2.5, label: "Fair", multiplier: 1.0 },
+  { min: 1.5, label: "Poor", multiplier: 0.9 },
+  { min: 1.0, label: "Bad", multiplier: 0.75 }
+];
+
+const channelFactors = [
+  { channel: "Retail", factor: 1.08, fee: 0.03, days: 35, risk: "Higher", note: "Highest upside, but slow and condition-sensitive." },
+  { channel: "Wholesale", factor: 0.96, fee: 0.015, days: 14, risk: "Low", note: "Predictable buyer base for fair-condition trucks." },
+  { channel: "Marketplace", factor: 1.0, fee: 0.025, days: 21, risk: "Medium", note: "Best balance when records and condition support buyer confidence." },
+  { channel: "Auction", factor: 0.88, fee: 0.045, days: 9, risk: "Low", note: "Fastest path, but typically lowest recovery." }
+];
 
 function money(v) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0
-  }).format(v);
+  }).format(Number.isFinite(v) ? v : 0);
+}
+
+function pct(v) {
+  return `${(v * 100).toFixed(1)}%`;
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function getConditionMultiplier(score) {
+  return conditionMultiplierTable.find((row) => score >= row.min) || conditionMultiplierTable[conditionMultiplierTable.length - 1];
+}
+
+function weightedCompAnchor(comps) {
+  const included = comps.filter((c) => c.included && c.value > 0 && c.relevance > 0);
+  const weightedTotal = included.reduce((sum, c) => sum + c.value * c.relevance, 0);
+  const relevanceTotal = included.reduce((sum, c) => sum + c.relevance, 0);
+  return relevanceTotal ? weightedTotal / relevanceTotal : 0;
+}
+
+function compQualityScore(comps) {
+  const included = comps.filter((c) => c.included);
+  const countScore = included.length >= 3 ? 100 : included.length === 2 ? 70 : included.length === 1 ? 40 : 0;
+  const avgRelevance = included.length ? included.reduce((s, c) => s + c.relevance, 0) / included.length : 0;
+  const dataQuality = included.length
+    ? included.reduce((s, c) => s + (c.saleType === "Dealer Listing" ? 60 : 100), 0) / included.length
+    : 0;
+  const values = included.map((c) => c.value).sort((a, b) => a - b);
+  const spread = values.length ? (values[values.length - 1] - values[0]) / values[Math.floor(values.length / 2)] : 1;
+  const spreadScore = spread < 0.15 ? 100 : spread <= 0.3 ? 70 : 40;
+  const recencyScore = 90;
+  return countScore * 0.25 + avgRelevance * 0.35 + recencyScore * 0.15 + dataQuality * 0.15 + spreadScore * 0.1;
+}
+
+function calculateFMV(asset, comps) {
+  const baseComp = weightedCompAnchor(comps);
+  const condition = getConditionMultiplier(asset.conditionScore);
+  const rawConfig = 1 + asset.configuration.reduce((sum, [, adj]) => sum + adj, 0);
+  const configMultiplier = clamp(rawConfig, 0.75, 1.3);
+  const expectedUsage = asset.age * 120000;
+  const usageVariance = expectedUsage ? (asset.mileage - expectedUsage) / expectedUsage : 0;
+  const usageMultiplier = clamp(1 - usageVariance * 0.15, 0.8, 1.12);
+  const regionMultiplier = 1.0;
+  const fmv = baseComp * condition.multiplier * configMultiplier * usageMultiplier * regionMultiplier;
+  const compQuality = compQualityScore(comps);
+  const inspectionCompleteness = 88;
+  const evidenceQuality = 82;
+  const usageReliability = 90;
+  const recordsQuality = asset.configuration.some(([name]) => name === "Full Service Records") ? 85 : 60;
+  const confidence = compQuality * 0.35 + inspectionCompleteness * 0.25 + evidenceQuality * 0.15 + usageReliability * 0.1 + recordsQuality * 0.15;
+  const repairs = asset.components.map(([name, band, repairCost, valueLift, note]) => ({
+    name,
+    band,
+    repairCost,
+    valueLift,
+    note,
+    roi: valueLift - repairCost,
+    multiple: repairCost ? valueLift / repairCost : 0
+  }));
+  const recommendedRepairCost = repairs.filter((r) => r.roi > 0).reduce((s, r) => s + r.repairCost, 0);
+  const channelScenarios = channelFactors.map((ch) => {
+    const gross = fmv * ch.factor;
+    const fees = gross * ch.fee;
+    const net = gross - fees - (ch.channel === "Wholesale" || ch.channel === "Marketplace" ? recommendedRepairCost : 0);
+    let score = net / 1000;
+    if (asset.conditionScore < 3.5 && ch.channel === "Wholesale") score += 5;
+    if (asset.conditionScore >= 3.5 && ch.channel === "Marketplace") score += 5;
+    if (asset.conditionScore < 2.5 && ch.channel === "Auction") score += 6;
+    return { ...ch, gross, fees, net, score };
+  }).sort((a, b) => b.score - a.score);
+  const recommendedChannel = channelScenarios[0];
+
+  const reviewFlags = [];
+  const includedComps = comps.filter((c) => c.included);
+  if (confidence < 65) reviewFlags.push("Confidence below 65% requires review.");
+  if (includedComps.length < 2) reviewFlags.push("Fewer than 2 included comps.");
+  if (includedComps.some((c) => c.saleType === "Dealer Listing")) reviewFlags.push("Listing price used as one comp; verify against sold data.");
+  if (asset.components.some(([name, band]) => name === "Engine" && band === "Poor")) reviewFlags.push("Poor engine condition should be reviewed before release.");
+
+  return {
+    baseComp,
+    condition,
+    configMultiplier,
+    expectedUsage,
+    usageVariance,
+    usageMultiplier,
+    regionMultiplier,
+    fmv,
+    fmvLow: fmv * 0.92,
+    fmvHigh: fmv * 1.08,
+    listingPrice: Math.round(fmv / 500) * 500,
+    confidence,
+    compQuality,
+    repairs,
+    recommendedRepairCost,
+    channelScenarios,
+    recommendedChannel,
+    reviewFlags
+  };
 }
 
 function Card({ children, dark = false }) {
   return <div className={dark ? "card dark" : "card"}>{children}</div>;
 }
 
+function Metric({ label, value, note }) {
+  return (
+    <div>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      {note ? <small>{note}</small> : null}
+    </div>
+  );
+}
+
 function App() {
   const [started, setStarted] = useState(false);
   const [tab, setTab] = useState("recommendation");
-
+  const [comps, setComps] = useState(initialComps);
   const [showComps, setShowComps] = useState(false);
-  const [showCompDetail, setShowCompDetail] = useState(false);
-
+  const [showCompDetail, setShowCompDetail] = useState(null);
   const [assetCount, setAssetCount] = useState(100);
   const [currentRetail, setCurrentRetail] = useState(65);
   const [currentWholesale, setCurrentWholesale] = useState(25);
   const [currentAuction, setCurrentAuction] = useState(10);
+  const [newComp, setNewComp] = useState({ asset: "", mileage: "", value: "", channel: "Wholesale", source: "", relevance: 75 });
+
+  const result = useMemo(() => calculateFMV(initialAsset, comps), [comps]);
 
   const predictedRetail = 30;
   const predictedWholesale = 50;
   const predictedAuction = 20;
-
-  const variance = asset.financial.expectedRecovery - asset.financial.bookedResidual;
-
-  const totalChannelDifference =
-    Math.abs(currentRetail - predictedRetail) +
-    Math.abs(currentWholesale - predictedWholesale) +
-    Math.abs(currentAuction - predictedAuction);
-
+  const variance = result.recommendedChannel.net - initialAsset.financial.bookedResidual;
+  const totalChannelDifference = Math.abs(currentRetail - predictedRetail) + Math.abs(currentWholesale - predictedWholesale) + Math.abs(currentAuction - predictedAuction);
   const estimatedMisroutedAssets = Math.round(assetCount * (totalChannelDifference / 2 / 100));
 
   const inputStyle = {
@@ -106,95 +285,63 @@ function App() {
     </span>
   );
 
+  function updateComp(id, key, value) {
+    setComps((rows) => rows.map((row) => (row.id === id ? { ...row, [key]: value } : row)));
+  }
+
+  function addComp() {
+    if (!newComp.asset || !newComp.value) return;
+    setComps((rows) => [
+      ...rows,
+      {
+        id: Date.now(),
+        asset: newComp.asset,
+        mileage: Number(newComp.mileage || 0),
+        value: Number(newComp.value || 0),
+        channel: newComp.channel,
+        source: newComp.source || "Manual Entry",
+        saleDate: "Manual",
+        relevance: Number(newComp.relevance || 0),
+        included: true,
+        saleType: "Manual Comp"
+      }
+    ]);
+    setNewComp({ asset: "", mileage: "", value: "", channel: "Wholesale", source: "", relevance: 75 });
+  }
+
   return (
     <div className="page">
       <section className="grid two">
         <Card>
           <h2>Current Channel Mix</h2>
           <p className="muted">How the company currently routes assets</p>
-
-          <div className="barrow">
-            <span>Retail</span>
-            <div><b style={{ width: `${currentRetail}%` }} /></div>
-            {percentInput(currentRetail, setCurrentRetail)}
-          </div>
-
-          <div className="barrow">
-            <span>Wholesale</span>
-            <div><b style={{ width: `${currentWholesale}%` }} /></div>
-            {percentInput(currentWholesale, setCurrentWholesale)}
-          </div>
-
-          <div className="barrow">
-            <span>Auction</span>
-            <div><b style={{ width: `${currentAuction}%` }} /></div>
-            {percentInput(currentAuction, setCurrentAuction)}
-          </div>
+          <div className="barrow"><span>Retail</span><div><b style={{ width: `${currentRetail}%` }} /></div>{percentInput(currentRetail, setCurrentRetail)}</div>
+          <div className="barrow"><span>Wholesale</span><div><b style={{ width: `${currentWholesale}%` }} /></div>{percentInput(currentWholesale, setCurrentWholesale)}</div>
+          <div className="barrow"><span>Auction</span><div><b style={{ width: `${currentAuction}%` }} /></div>{percentInput(currentAuction, setCurrentAuction)}</div>
         </Card>
-
         <Card>
           <h2>NRE Predicted Channel Mix</h2>
           <p className="muted">How NRE predicts assets should be routed</p>
-
-          <div className="barrow">
-            <span>Retail</span>
-            <div><b style={{ width: "30%" }} /></div>
-            <strong>30%</strong>
-          </div>
-
-          <div className="barrow">
-            <span>Wholesale</span>
-            <div><b style={{ width: "50%" }} /></div>
-            <strong>50%</strong>
-          </div>
-
-          <div className="barrow">
-            <span>Auction</span>
-            <div><b style={{ width: "20%" }} /></div>
-            <strong>20%</strong>
-          </div>
+          <div className="barrow"><span>Retail</span><div><b style={{ width: "30%" }} /></div><strong>30%</strong></div>
+          <div className="barrow"><span>Wholesale</span><div><b style={{ width: "50%" }} /></div><strong>50%</strong></div>
+          <div className="barrow"><span>Auction</span><div><b style={{ width: "20%" }} /></div><strong>20%</strong></div>
         </Card>
       </section>
 
       <Card>
         <h2>Channel Opportunity</h2>
         <p className="muted">Estimate how many assets may be routed differently under the NRE channel mix.</p>
-
         <div className="summary-row light">
-          <div>
-            <span>Asset Count</span>
-            <strong>
-              <input
-                type="text"
-                value={assetCount}
-                onChange={(e) => setAssetCount(Number(e.target.value.replace(/[^0-9]/g, "")))}
-                style={{
-                  width: "80px",
-                  border: "none",
-                  background: "transparent",
-                  fontWeight: 800,
-                  fontSize: "24px",
-                  textAlign: "center",
-                  outline: "none"
-                }}
-              />
-            </strong>
-          </div>
-          <div>
-            <span>Estimated Misrouted Assets</span>
-            <strong>{estimatedMisroutedAssets}</strong>
-          </div>
-          <div>
-            <span>Channel Mix Difference</span>
-            <strong>{Math.round(totalChannelDifference / 2)}%</strong>
-          </div>
+          <Metric label="Asset Count" value={<input type="text" value={assetCount} onChange={(e) => setAssetCount(Number(e.target.value.replace(/[^0-9]/g, "")))} style={{ width: "80px", border: "none", background: "transparent", fontWeight: 800, fontSize: "24px", textAlign: "center", outline: "none" }} />} />
+          <Metric label="Estimated Misrouted Assets" value={estimatedMisroutedAssets} />
+          <Metric label="Channel Mix Difference" value={`${Math.round(totalChannelDifference / 2)}%`} />
         </div>
       </Card>
 
       <header className="hero">
         <div>
-          <h1>Net Recovery Engine™</h1>
-          <p>Inspection upload → condition intelligence → configuration intelligence → channel decision</p>
+          <h1>Net Recovery Engine™ + FMV Module</h1>
+          <p>Inspection upload → condition intelligence → FMV calculation → channel decision</p>
         </div>
         <button onClick={() => setStarted(true)}>Upload Inspection</button>
       </header>
@@ -207,17 +354,15 @@ function App() {
       ) : (
         <>
           <Card>
-            <h2>{asset.header}</h2>
+            <h2>{initialAsset.header}</h2>
             <p className="muted">
-              {asset.location} · Score {asset.conditionScore} ({asset.conditionBand}) · {asset.comps} comps
+              {initialAsset.location} · Score {initialAsset.conditionScore.toFixed(1)} ({result.condition.label}) · {comps.length} comps · FMV {money(result.fmv)}
             </p>
           </Card>
 
           <nav className="tabs">
-            {["recommendation", "scenarios", "condition", "configuration", "fmv", "comps", "financial"].map((t) => (
-              <button key={t} onClick={() => setTab(t)} className={tab === t ? "active" : ""}>
-                {t.toUpperCase()}
-              </button>
+            {["recommendation", "scenarios", "condition", "configuration", "fmv", "comps", "financial", "report"].map((t) => (
+              <button key={t} onClick={() => setTab(t)} className={tab === t ? "active" : ""}>{t.toUpperCase()}</button>
             ))}
           </nav>
 
@@ -225,18 +370,20 @@ function App() {
             <>
               <Card dark>
                 <span className="eyebrow">ACTION</span>
-                <h2>{asset.recommendation.action}</h2>
-
+                <h2>Repair positive ROI items + move to {result.recommendedChannel.channel}</h2>
                 <div className="summary-row">
-                  <div><span>Net</span><strong>{money(asset.recommendation.expectedNet)}</strong></div>
-                  <div><span>Lift</span><strong>+{money(asset.recommendation.lift)}</strong></div>
-                  <div><span>Days</span><strong>{asset.recommendation.days}</strong></div>
+                  <Metric label="Expected Net" value={money(result.recommendedChannel.net)} />
+                  <Metric label="FMV" value={money(result.fmv)} />
+                  <Metric label="Days" value={result.recommendedChannel.days} />
                 </div>
               </Card>
-
               <Card>
                 <h2>Why This Decision</h2>
-                <ul>{asset.recommendation.why.map((x) => <li key={x}>{x}</li>)}</ul>
+                <ul>
+                  <li>FMV is anchored to relevance-weighted comps, then adjusted for condition, configuration, usage, and region.</li>
+                  <li>{result.recommendedChannel.channel} produces the strongest score after net recovery, condition fit, timing, and risk.</li>
+                  <li>Positive repair ROI items should be completed before sale unless speed is the primary objective.</li>
+                </ul>
               </Card>
             </>
           )}
@@ -244,15 +391,10 @@ function App() {
           {tab === "scenarios" && (
             <Card>
               <h2>Scenario Comparison</h2>
-              {asset.scenarios.map(([name, net, days, note]) => (
-                <div className="scenario" key={name}>
-                  <div>
-                    <strong>{name}</strong>
-                    <p>{note}</p>
-                  </div>
-                  <div className="right-value">
-                    <strong>Net {money(net)}, {days} days</strong>
-                  </div>
+              {result.channelScenarios.map((row) => (
+                <div className="scenario" key={row.channel}>
+                  <div><strong>{row.channel}</strong><p>{row.note}</p></div>
+                  <div className="right-value"><strong>Net {money(row.net)}, {row.days} days</strong><p>Gross {money(row.gross)} · Fees {money(row.fees)}</p></div>
                 </div>
               ))}
             </Card>
@@ -261,63 +403,25 @@ function App() {
           {tab === "condition" && (
             <Card>
               <h2>Major Component Condition</h2>
-              {asset.components.map(([name, band, repairCost, valueLift, note]) => {
-                const netBenefit = valueLift - repairCost;
-
-                return (
-                  <div className="scenario" key={name}>
-                    <div>
-                      <strong>{name}</strong>
-                      <p>{note}</p>
-                    </div>
-                    <div className="right-value">
-                      <strong>{band}</strong>
-                      <p>
-                        Repair {money(repairCost)} · Lift {money(valueLift)} · Net{" "}
-                        {netBenefit >= 0 ? "+" : ""}
-                        {money(netBenefit)}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
+              {result.repairs.map((row) => (
+                <div className="scenario" key={row.name}>
+                  <div><strong>{row.name}</strong><p>{row.note}</p></div>
+                  <div className="right-value"><strong>{row.band}</strong><p>Repair {money(row.repairCost)} · Lift {money(row.valueLift)} · Net {row.roi >= 0 ? "+" : ""}{money(row.roi)}</p></div>
+                </div>
+              ))}
             </Card>
           )}
 
           {tab === "configuration" && (
             <Card>
-              <h2>Configuration & Attachments</h2>
-              {asset.configuration.map(([name, value, note]) => (
+              <h2>Configuration & Adjustments</h2>
+              {initialAsset.configuration.map(([name, value, note]) => (
                 <div className="scenario" key={name}>
-                  <div>
-                    <strong>{name}</strong>
-                    <p>{note}</p>
-                  </div>
-                  <div className="right-value">
-                    <strong>Value {money(value)}</strong>
-                  </div>
+                  <div><strong>{name}</strong><p>{note}</p></div>
+                  <div className="right-value"><strong>{value >= 0 ? "+" : ""}{pct(value)}</strong></div>
                 </div>
               ))}
-
-              <div className="scenario">
-                <div>
-                  <strong>Service History</strong>
-                  <p>Complete maintenance records available</p>
-                </div>
-                <div className="right-value">
-                  <strong>Complete</strong>
-                </div>
-              </div>
-
-              <div className="scenario">
-                <div>
-                  <strong>Warranty Status</strong>
-                  <p>Active remaining coverage</p>
-                </div>
-                <div className="right-value">
-                  <strong>Active</strong>
-                </div>
-              </div>
+              <div className="summary-row light"><Metric label="Config Multiplier" value={`${result.configMultiplier.toFixed(3)}x`} /><Metric label="Usage Multiplier" value={`${result.usageMultiplier.toFixed(3)}x`} /><Metric label="Region Multiplier" value={`${result.regionMultiplier.toFixed(3)}x`} /></div>
             </Card>
           )}
 
@@ -325,135 +429,39 @@ function App() {
             <Card>
               <h2>Fair Market Value</h2>
               <div className="summary-row light">
-                <div><span>Retail</span><strong>$35,900 – $37,900</strong></div>
-                <div><span>Wholesale</span><strong>$30,200 – $32,200</strong></div>
-                <div><span>Auction</span><strong>$27,500 – $29,500</strong></div>
+                <Metric label="FMV Opinion" value={money(result.fmv)} />
+                <Metric label="FMV Range" value={`${money(result.fmvLow)} – ${money(result.fmvHigh)}`} />
+                <Metric label="Listing Price" value={money(result.listingPrice)} />
               </div>
+              <div className="formula-grid">
+                <div><span>Base Comp Anchor</span><strong>{money(result.baseComp)}</strong></div>
+                <div><span>Condition</span><strong>{result.condition.multiplier.toFixed(2)}x</strong></div>
+                <div><span>Configuration</span><strong>{result.configMultiplier.toFixed(2)}x</strong></div>
+                <div><span>Usage</span><strong>{result.usageMultiplier.toFixed(2)}x</strong></div>
+                <div><span>Region</span><strong>{result.regionMultiplier.toFixed(2)}x</strong></div>
+                <div><span>Confidence</span><strong>{result.confidence.toFixed(0)}%</strong></div>
+              </div>
+              <p className="muted">Formula: Base Comp × Condition × Configuration × Usage × Region.</p>
             </Card>
           )}
 
           {tab === "comps" && (
             <Card>
-              <h2>Comparable Asset Outcomes</h2>
-              <p className="muted">Comps show how similar assets have actually sold across channels.</p>
-
-              {asset.compsBreakdown.map(([channel, count, range, note]) => (
-                <div className="scenario" key={channel}>
-                  <div>
-                    <strong>{channel}</strong>
-                    <p>{count} comps · {note}</p>
-                  </div>
+              <h2>Comparable Sales</h2>
+              <p className="muted">Comps are scored and weighted to calculate the Base Comp Anchor.</p>
+              <div className="summary-row light"><Metric label="Weighted Comp Anchor" value={money(result.baseComp)} /><Metric label="Comp Quality" value={`${result.compQuality.toFixed(0)}%`} /><Metric label="Included Comps" value={comps.filter((c) => c.included).length} /></div>
+              {comps.map((comp) => (
+                <div className="scenario" key={comp.id}>
+                  <div><strong>{comp.asset}</strong><p>{comp.source} · {comp.saleDate} · {comp.channel} · {comp.saleType}</p></div>
                   <div className="right-value">
-                    <strong>FMV Range {range}</strong>
+                    <strong>{money(comp.value)}</strong>
+                    <p>{comp.mileage.toLocaleString()} miles · Relevance {comp.relevance}%</p>
+                    <label className="toggle"><input type="checkbox" checked={comp.included} onChange={(e) => updateComp(comp.id, "included", e.target.checked)} /> Include</label>
+                    <button className="small" onClick={() => setShowCompDetail(comp)}>Detail</button>
                   </div>
                 </div>
               ))}
-
-              <button onClick={() => setShowComps(true)}>
-                View Comps (42)
-              </button>
-
-              {showComps && (
-                <div style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  background: "rgba(0,0,0,0.45)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 9999
-                }}>
-                  <div style={{
-                    background: "white",
-                    padding: "24px",
-                    borderRadius: "12px",
-                    width: "720px",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
-                  }}>
-                    <h2>Comparable Sales</h2>
-                    <p>Page 1 of 9</p>
-
-                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <tbody>
-                        <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
-                          <td>2019 Freightliner Cascadia</td>
-                          <td>482K miles</td>
-                          <td>$46,500</td>
-                          <td>Wholesale</td>
-                        </tr>
-                        <tr onClick={() => setShowCompDetail(true)} style={{ cursor: "pointer" }}>
-                          <td>2018 Freightliner Cascadia</td>
-                          <td>515K miles</td>
-                          <td>$42,000</td>
-                          <td>Auction</td>
-                        </tr>
-                        <tr>
-                          <td>2020 Peterbilt 579</td>
-                          <td>438K miles</td>
-                          <td>$51,200</td>
-                          <td>Retail</td>
-                        </tr>
-                        <tr>
-                          <td>2017 Kenworth T680</td>
-                          <td>601K miles</td>
-                          <td>$38,400</td>
-                          <td>Auction</td>
-                        </tr>
-                        <tr>
-                          <td>2019 Volvo VNL</td>
-                          <td>490K miles</td>
-                          <td>$44,800</td>
-                          <td>Wholesale</td>
-                        </tr>
-                      </tbody>
-                    </table>
-
-                    <button onClick={() => setShowComps(false)}>
-                      Close
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {showCompDetail && (
-                <div style={{
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  background: "rgba(0,0,0,0.45)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  zIndex: 10000
-                }}>
-                  <div style={{
-                    background: "white",
-                    padding: "24px",
-                    borderRadius: "12px",
-                    width: "640px",
-                    boxShadow: "0 10px 30px rgba(0,0,0,0.25)"
-                  }}>
-                    <h2>Comparable Sale Detail</h2>
-
-                    <p><strong>Asset:</strong> 2019 Freightliner Cascadia</p>
-                    <p><strong>Mileage:</strong> 482,000 miles</p>
-                    <p><strong>Sale Price:</strong> $46,500</p>
-                    <p><strong>Channel:</strong> Wholesale</p>
-                    <p><strong>Source:</strong> Ritchie Bros.</p>
-                    <p><strong>Sale Date:</strong> March 2025</p>
-                    <p><strong>Condition:</strong> Similar mileage and condition profile</p>
-
-                    <button onClick={() => setShowCompDetail(false)}>
-                      Close
-                    </button>
-                  </div>
-                </div>
-              )}
+              <button onClick={() => setShowComps(true)}><Plus size={16} /> Add Comp</button>
             </Card>
           )}
 
@@ -461,13 +469,60 @@ function App() {
             <Card>
               <h2>Financial Impact</h2>
               <div className="summary-row light">
-                <div><span>Residual</span><strong>{money(asset.financial.bookedResidual)}</strong></div>
-                <div><span>Recovery</span><strong>{money(asset.financial.expectedRecovery)}</strong></div>
-                <div><span>Variance</span><strong>{money(variance)}</strong></div>
+                <Metric label="Booked Residual" value={money(initialAsset.financial.bookedResidual)} />
+                <Metric label="Expected Recovery" value={money(result.recommendedChannel.net)} />
+                <Metric label="Variance" value={money(variance)} />
               </div>
             </Card>
           )}
+
+          {tab === "report" && (
+            <Card>
+              <div className="report-title"><FileText /><div><h2>Equipment FMV Report</h2><p className="muted">Customer-ready valuation summary</p></div></div>
+              <div className="summary-row light"><Metric label="Asset" value={initialAsset.header} /><Metric label="FMV Opinion" value={money(result.fmv)} /><Metric label="Recommended Channel" value={result.recommendedChannel.channel} /></div>
+              <h2>Valuation Opinion</h2>
+              <p>Based on comparable sales, qualified inspection data, configuration scoring, usage normalization, regional market conditions, repair economics, and channel performance, the fair market value of the subject asset is estimated at <strong>{money(result.fmv)}</strong>, with a reasonable range of <strong>{money(result.fmvLow)} to {money(result.fmvHigh)}</strong>.</p>
+              <h2>Methodology</h2>
+              <p>The FMV Engine starts with a relevance-weighted comparable sales anchor of <strong>{money(result.baseComp)}</strong>, then applies a condition multiplier of <strong>{result.condition.multiplier.toFixed(2)}x</strong>, configuration multiplier of <strong>{result.configMultiplier.toFixed(2)}x</strong>, usage multiplier of <strong>{result.usageMultiplier.toFixed(2)}x</strong>, and region multiplier of <strong>{result.regionMultiplier.toFixed(2)}x</strong>.</p>
+              <h2>Review Flags</h2>
+              {result.reviewFlags.length ? <ul>{result.reviewFlags.map((flag) => <li key={flag}>{flag}</li>)}</ul> : <p>No review flags.</p>}
+              <button onClick={() => window.print()}>Export / Print PDF</button>
+            </Card>
+          )}
         </>
+      )}
+
+      {showComps && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h2>Add Comparable Sale</h2>
+            <div className="form-grid">
+              <label>Asset<input value={newComp.asset} onChange={(e) => setNewComp({ ...newComp, asset: e.target.value })} /></label>
+              <label>Mileage<input value={newComp.mileage} onChange={(e) => setNewComp({ ...newComp, mileage: e.target.value.replace(/[^0-9]/g, "") })} /></label>
+              <label>Value<input value={newComp.value} onChange={(e) => setNewComp({ ...newComp, value: e.target.value.replace(/[^0-9]/g, "") })} /></label>
+              <label>Channel<select value={newComp.channel} onChange={(e) => setNewComp({ ...newComp, channel: e.target.value })}><option>Retail</option><option>Wholesale</option><option>Marketplace</option><option>Auction</option></select></label>
+              <label>Source<input value={newComp.source} onChange={(e) => setNewComp({ ...newComp, source: e.target.value })} /></label>
+              <label>Relevance<input value={newComp.relevance} onChange={(e) => setNewComp({ ...newComp, relevance: e.target.value.replace(/[^0-9]/g, "") })} /></label>
+            </div>
+            <div className="modal-actions"><button onClick={addComp}>Save Comp</button><button className="secondary" onClick={() => setShowComps(false)}>Close</button></div>
+          </div>
+        </div>
+      )}
+
+      {showCompDetail && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h2>Comparable Sale Detail</h2>
+            <p><strong>Asset:</strong> {showCompDetail.asset}</p>
+            <p><strong>Mileage:</strong> {showCompDetail.mileage.toLocaleString()} miles</p>
+            <p><strong>Sale Price:</strong> {money(showCompDetail.value)}</p>
+            <p><strong>Channel:</strong> {showCompDetail.channel}</p>
+            <p><strong>Source:</strong> {showCompDetail.source}</p>
+            <p><strong>Sale Date:</strong> {showCompDetail.saleDate}</p>
+            <p><strong>Relevance:</strong> {showCompDetail.relevance}%</p>
+            <button onClick={() => setShowCompDetail(null)}>Close</button>
+          </div>
+        </div>
       )}
 
       <footer>© 2026 Net Recovery Engine. All rights reserved.</footer>
@@ -476,3 +531,4 @@ function App() {
 }
 
 createRoot(document.getElementById("root")).render(<App />);
+
