@@ -351,14 +351,7 @@ function App() {
   </button>
 </div>
 
-      {!started ? (
-        <Card>
-  <h2>Ready to start valuation</h2>
-  <p className="muted">
-    Upload the customer inspection report to begin the FMV and recovery recommendation workflow.
-  </p>
-</Card>
-      ) : (
+     {!started ? null : (
         <>
           <Card>
             <h2>{initialAsset.header}</h2>
