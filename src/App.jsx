@@ -426,9 +426,9 @@ function App() {
                 <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "18px" }}>
                   <button onClick={() => setShowInspectionReport(true)}>View Report</button>
                   <button onClick={() => window.print()}>Print</button>
-                  <button onClick={() => alert("Demo share link created for the inspection report.")}>Share</button>
+                 
                   <button onClick={() => alert("Demo forward action. In production, this would email the inspection report.")}>Forward</button>
-                  <button onClick={() => alert("Demo replace action. In production, this would upload a corrected report.")}>Replace</button>
+                
                 </div>
               </Card>
 
