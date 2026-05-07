@@ -345,14 +345,16 @@ function App() {
           <Metric label="Channel Mix Difference" value={`${Math.round(totalChannelDifference / 2)}%`} />
         </div>
       </Card>
-
-      <header className="hero">
-        <div>
-          <h1>Net Recovery Engine™ + FMV Module</h1>
-          <p>Inspection upload → condition intelligence → FMV calculation → channel decision</p>
-        </div>
-        <button onClick={() => setStarted(true)}>Upload Inspection</button>
-      </header>
+<header className="hero">
+  <div>
+    <h1>Start Valuation</h1>
+    <p>
+      Upload the inspection report to generate condition intelligence, fair market value,
+      repair ROI, and recommended disposition.
+    </p>
+  </div>
+  <button onClick={() => setStarted(true)}>Upload Inspection Report</button>
+</header>
 
       {!started ? (
         <Card>
