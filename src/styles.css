@@ -385,3 +385,56 @@ footer {
   border-radius: 12px;
 }
 
+
+/* Inspection report card */
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.inspection-card {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.inspection-card div {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.inspection-card span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.inspection-card strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.button-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+@media (max-width: 800px) {
+  .section-title-row {
+    flex-direction: column;
+  }
+
+  .inspection-card {
+    grid-template-columns: 1fr;
+  }
+}
