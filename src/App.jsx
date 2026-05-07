@@ -358,9 +358,11 @@ function App() {
 
       {!started ? (
         <Card>
-          <h2>Ready for inspection upload</h2>
-          <p className="muted">Click Upload Inspection to generate the decision report.</p>
-        </Card>
+  <h2>Ready to start valuation</h2>
+  <p className="muted">
+    Upload the customer inspection report to begin the FMV and recovery recommendation workflow.
+  </p>
+</Card>
       ) : (
         <>
           <Card>
