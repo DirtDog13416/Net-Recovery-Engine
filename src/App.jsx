@@ -1,16 +1,8 @@
 import React, { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
-  AlertTriangle,
-  Calculator,
-  CheckCircle,
   FileText,
-  Gauge,
-  LineChart,
-  Plus,
-  ShieldCheck,
-  Truck,
-  Wrench
+  Plus
 } from "lucide-react";
 import "./styles.css";
 
@@ -114,11 +106,27 @@ const conditionMultiplierTable = [
 ];
 
 const channelFactors = [
-  { channel: "Retail", factor: 1.08, fee: 0.03, days: 35, risk: "Higher", note: "Highest upside, but slow and condition-sensitive." },
-  { channel: "Wholesale", factor: 0.96, fee: 0.015, days: 14, risk: "Low", note: "Predictable buyer base for fair-condition trucks." },
+  { channel: "Retail", factor: 1.08, fee: 0.03, days: 35, risk: "Higher", note: "Highest FMV reference, but slow and condition-sensitive for this asset." },
+  { channel: "Wholesale", factor: 0.96, fee: 0.015, days: 14, risk: "Low", note: "Most predictable buyer base for this fair-condition truck after focused reconditioning." },
   { channel: "Marketplace", factor: 1.0, fee: 0.025, days: 21, risk: "Medium", note: "Best balance when records and condition support buyer confidence." },
   { channel: "Auction", factor: 0.88, fee: 0.045, days: 9, risk: "Low", note: "Fastest path, but typically lowest recovery." }
 ];
+
+const nreDisposition = {
+  action: "Repair critical items + move to Wholesale",
+  expectedNet: 35100,
+  lift: 3900,
+  days: 14,
+  channel: "Wholesale",
+  why: [
+    "Engine condition suppresses retail buyer demand and increases buyer diligence.",
+    "Wholesale comps are tighter and more predictable for this defect profile.",
+    "Sleeper, APU, and aero configuration add value, but not enough to justify longer retail exposure before targeted reconditioning."
+  ]
+};
+
+const fmvReferenceChannel = "Retail";
+
 
 function money(v) {
   return new Intl.NumberFormat("en-US", {
@@ -197,7 +205,7 @@ function calculateFMV(asset, comps) {
     if (asset.conditionScore < 2.5 && ch.channel === "Auction") score += 6;
     return { ...ch, gross, fees, net, score };
   }).sort((a, b) => b.score - a.score);
-  const recommendedChannel = channelScenarios[0];
+  const recommendedChannel = channelScenarios.find((row) => row.channel === nreDisposition.channel) || channelScenarios[0];
 
   const reviewFlags = [];
   const includedComps = comps.filter((c) => c.included);
@@ -259,7 +267,7 @@ function App() {
   const predictedRetail = 30;
   const predictedWholesale = 50;
   const predictedAuction = 20;
-  const variance = result.recommendedChannel.net - initialAsset.financial.bookedResidual;
+  const variance = nreDisposition.expectedNet - initialAsset.financial.bookedResidual;
   const totalChannelDifference = Math.abs(currentRetail - predictedRetail) + Math.abs(currentWholesale - predictedWholesale) + Math.abs(currentAuction - predictedAuction);
   const estimatedMisroutedAssets = Math.round(assetCount * (totalChannelDifference / 2 / 100));
 
@@ -369,20 +377,19 @@ function App() {
           {tab === "recommendation" && (
             <>
               <Card dark>
-                <span className="eyebrow">ACTION</span>
-                <h2>Repair positive ROI items + move to {result.recommendedChannel.channel}</h2>
+                <span className="eyebrow">NRE RECOMMENDED DISPOSITION</span>
+                <h2>{nreDisposition.action}</h2>
                 <div className="summary-row">
-                  <Metric label="Expected Net" value={money(result.recommendedChannel.net)} />
-                  <Metric label="FMV" value={money(result.fmv)} />
-                  <Metric label="Days" value={result.recommendedChannel.days} />
+                  <Metric label="Expected Net Recovery" value={money(nreDisposition.expectedNet)} />
+                  <Metric label="FMV Opinion" value={money(result.fmv)} />
+                  <Metric label="Expected Days" value={nreDisposition.days} />
                 </div>
               </Card>
               <Card>
                 <h2>Why This Decision</h2>
                 <ul>
-                  <li>FMV is anchored to relevance-weighted comps, then adjusted for condition, configuration, usage, and region.</li>
-                  <li>{result.recommendedChannel.channel} produces the strongest score after net recovery, condition fit, timing, and risk.</li>
-                  <li>Positive repair ROI items should be completed before sale unless speed is the primary objective.</li>
+                  {nreDisposition.why.map((reason) => <li key={reason}>{reason}</li>)}
+                  <li>FMV is still shown separately as a market value opinion; NRE recommendation is the operating recovery path.</li>
                 </ul>
               </Card>
             </>
@@ -435,13 +442,17 @@ function App() {
               </div>
               <div className="formula-grid">
                 <div><span>Base Comp Anchor</span><strong>{money(result.baseComp)}</strong></div>
-                <div><span>Condition</span><strong>{result.condition.multiplier.toFixed(2)}x</strong></div>
+                <div><span>Condition</span><strong>{result.condition.label} / {initialAsset.conditionScore.toFixed(1)} / {result.condition.multiplier.toFixed(2)}x</strong></div>
                 <div><span>Configuration</span><strong>{result.configMultiplier.toFixed(2)}x</strong></div>
                 <div><span>Usage</span><strong>{result.usageMultiplier.toFixed(2)}x</strong></div>
                 <div><span>Region</span><strong>{result.regionMultiplier.toFixed(2)}x</strong></div>
                 <div><span>Confidence</span><strong>{result.confidence.toFixed(0)}%</strong></div>
               </div>
               <p className="muted">Formula: Base Comp × Condition × Configuration × Usage × Region.</p>
+              <div className="explain-box">
+                <strong>Plain-English valuation summary</strong>
+                <p>The FMV opinion of <strong>{money(result.fmv)}</strong> is based on a weighted comparable sales anchor of <strong>{money(result.baseComp)}</strong>, adjusted for verified condition, configuration value, usage, and regional market assumptions. Configuration adds value due to sleeper/APU/aero package and service records, while the overall fair condition score keeps the condition multiplier neutral at <strong>{result.condition.multiplier.toFixed(2)}x</strong>.</p>
+              </div>
             </Card>
           )}
 
@@ -452,7 +463,11 @@ function App() {
               <div className="summary-row light"><Metric label="Weighted Comp Anchor" value={money(result.baseComp)} /><Metric label="Comp Quality" value={`${result.compQuality.toFixed(0)}%`} /><Metric label="Included Comps" value={comps.filter((c) => c.included).length} /></div>
               {comps.map((comp) => (
                 <div className="scenario" key={comp.id}>
-                  <div><strong>{comp.asset}</strong><p>{comp.source} · {comp.saleDate} · {comp.channel} · {comp.saleType}</p></div>
+                  <div>
+                    <strong>{comp.asset}</strong>
+                    <p>{comp.source} · {comp.saleDate} · {comp.channel} · {comp.saleType}</p>
+                    {comp.saleType.includes("Listing") ? <span className="badge warning">Listing Only</span> : <span className="badge success">Verified Sale</span>}
+                  </div>
                   <div className="right-value">
                     <strong>{money(comp.value)}</strong>
                     <p>{comp.mileage.toLocaleString()} miles · Relevance {comp.relevance}%</p>
@@ -470,7 +485,7 @@ function App() {
               <h2>Financial Impact</h2>
               <div className="summary-row light">
                 <Metric label="Booked Residual" value={money(initialAsset.financial.bookedResidual)} />
-                <Metric label="Expected Recovery" value={money(result.recommendedChannel.net)} />
+                <Metric label="Expected Recovery" value={money(nreDisposition.expectedNet)} />
                 <Metric label="Variance" value={money(variance)} />
               </div>
             </Card>
@@ -479,13 +494,17 @@ function App() {
           {tab === "report" && (
             <Card>
               <div className="report-title"><FileText /><div><h2>Equipment FMV Report</h2><p className="muted">Customer-ready valuation summary</p></div></div>
-              <div className="summary-row light"><Metric label="Asset" value={initialAsset.header} /><Metric label="FMV Opinion" value={money(result.fmv)} /><Metric label="Recommended Channel" value={result.recommendedChannel.channel} /></div>
+              <div className="summary-row light"><Metric label="Asset" value={initialAsset.header} /><Metric label="FMV Opinion" value={money(result.fmv)} /><Metric label="Recommended Disposition" value={nreDisposition.action} /></div>
+              <div className="summary-row light"><Metric label="FMV Reference Channel" value={fmvReferenceChannel} /><Metric label="Expected Net Recovery" value={money(nreDisposition.expectedNet)} /><Metric label="Confidence" value={`${result.confidence.toFixed(0)}%`} /></div>
               <h2>Valuation Opinion</h2>
-              <p>Based on comparable sales, qualified inspection data, configuration scoring, usage normalization, regional market conditions, repair economics, and channel performance, the fair market value of the subject asset is estimated at <strong>{money(result.fmv)}</strong>, with a reasonable range of <strong>{money(result.fmvLow)} to {money(result.fmvHigh)}</strong>.</p>
+              <p>Based on comparable sales, qualified inspection data, configuration scoring, usage normalization, regional market conditions, repair economics, and channel performance, the fair market value of the subject asset is estimated at <strong>{money(result.fmv)}</strong>, with a reasonable range of <strong>{money(result.fmvLow)} to {money(result.fmvHigh)}</strong>. The NRE recommended disposition is <strong>{nreDisposition.action}</strong>, with expected net recovery of <strong>{money(nreDisposition.expectedNet)}</strong>.</p>
               <h2>Methodology</h2>
-              <p>The FMV Engine starts with a relevance-weighted comparable sales anchor of <strong>{money(result.baseComp)}</strong>, then applies a condition multiplier of <strong>{result.condition.multiplier.toFixed(2)}x</strong>, configuration multiplier of <strong>{result.configMultiplier.toFixed(2)}x</strong>, usage multiplier of <strong>{result.usageMultiplier.toFixed(2)}x</strong>, and region multiplier of <strong>{result.regionMultiplier.toFixed(2)}x</strong>.</p>
+              <p>The FMV Engine starts with a relevance-weighted comparable sales anchor of <strong>{money(result.baseComp)}</strong>, then applies a condition multiplier of <strong>{result.condition.label} / {initialAsset.conditionScore.toFixed(1)} / {result.condition.multiplier.toFixed(2)}x</strong>, configuration multiplier of <strong>{result.configMultiplier.toFixed(2)}x</strong>, usage multiplier of <strong>{result.usageMultiplier.toFixed(2)}x</strong>, and region multiplier of <strong>{result.regionMultiplier.toFixed(2)}x</strong>.</p>
+              <p><strong>Channel clarification:</strong> Retail is used as an FMV reference channel, but the disposition recommendation is Wholesale after targeted repair because this asset has a fair overall condition score and poor engine condition.</p>
               <h2>Review Flags</h2>
               {result.reviewFlags.length ? <ul>{result.reviewFlags.map((flag) => <li key={flag}>{flag}</li>)}</ul> : <p>No review flags.</p>}
+              <h2>Disclaimer</h2>
+              <p className="disclaimer">This valuation is an estimated fair market value opinion based on available inspection data, comparable market evidence, configuration inputs, usage assumptions, and channel performance logic. It is not a guaranteed sale price, appraisal certification, or binding offer. Final recovery may vary based on buyer demand, timing, title status, repair completion, and market conditions.</p>
               <button onClick={() => window.print()}>Export / Print PDF</button>
             </Card>
           )}
@@ -531,4 +550,5 @@ function App() {
 }
 
 createRoot(document.getElementById("root")).render(<App />);
+
 
