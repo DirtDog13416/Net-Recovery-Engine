@@ -428,6 +428,9 @@ function App() {
                   <button onClick={() => window.print()}>Print</button>
                  
                   <button onClick={() => alert("Demo forward action. In production, this would email the inspection report.")}>Forward</button>
+                  <button className="secondary">
+  Save as PDF
+</button>
                 
                 </div>
               </Card>
