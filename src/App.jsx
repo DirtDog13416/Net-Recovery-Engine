@@ -125,7 +125,15 @@ const nreDisposition = {
   ]
 };
 
-const fmvReferenceChannel = "Retail";
+const inspectionReport = {
+  fileName: "Freightliner_Cascadia_Inspection_Report.pdf",
+  uploadedBy: "Customer / Vendor",
+  uploadedDate: "May 6, 2026",
+  status: "Received and processed",
+  reportId: "INSP-2019-FC-001"
+};
+
+const valuationBasis = "Verified auction results, wholesale transactions, internal sale history, and listing indicators";
 
 
 function money(v) {
@@ -256,6 +264,7 @@ function App() {
   const [comps, setComps] = useState(initialComps);
   const [showComps, setShowComps] = useState(false);
   const [showCompDetail, setShowCompDetail] = useState(null);
+  const [showInspectionReport, setShowInspectionReport] = useState(false);
   const [assetCount, setAssetCount] = useState(100);
   const [currentRetail, setCurrentRetail] = useState(65);
   const [currentWholesale, setCurrentWholesale] = useState(25);
@@ -400,15 +409,39 @@ function App() {
           )}
 
           {tab === "condition" && (
-            <Card>
-              <h2>Major Component Condition</h2>
-              {result.repairs.map((row) => (
-                <div className="scenario" key={row.name}>
-                  <div><strong>{row.name}</strong><p>{row.note}</p></div>
-                  <div className="right-value"><strong>{row.band}</strong><p>Repair {money(row.repairCost)} · Lift {money(row.valueLift)} · Net {row.roi >= 0 ? "+" : ""}{money(row.roi)}</p></div>
+            <>
+              <Card>
+                <h2>Inspection Report</h2>
+                <p className="muted">This uploaded inspection report is the source document used to generate condition intelligence, repair findings, FMV adjustments, and recommended disposition.</p>
+                <div className="summary-row light">
+                  <Metric label="Uploaded File" value={inspectionReport.fileName} />
+                  <Metric label="Uploaded By" value={inspectionReport.uploadedBy} />
+                  <Metric label="Status" value={inspectionReport.status} />
                 </div>
-              ))}
-            </Card>
+                <div className="summary-row light">
+                  <Metric label="Uploaded Date" value={inspectionReport.uploadedDate} />
+                  <Metric label="Report ID" value={inspectionReport.reportId} />
+                  <Metric label="Condition" value={`${result.condition.label} / ${initialAsset.conditionScore.toFixed(1)} / ${result.condition.multiplier.toFixed(2)}x`} />
+                </div>
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "18px" }}>
+                  <button onClick={() => setShowInspectionReport(true)}>View Report</button>
+                  <button onClick={() => window.print()}>Print</button>
+                  <button onClick={() => alert("Demo share link created for the inspection report.")}>Share</button>
+                  <button onClick={() => alert("Demo forward action. In production, this would email the inspection report.")}>Forward</button>
+                  <button onClick={() => alert("Demo replace action. In production, this would upload a corrected report.")}>Replace</button>
+                </div>
+              </Card>
+
+              <Card>
+                <h2>Major Component Condition</h2>
+                {result.repairs.map((row) => (
+                  <div className="scenario" key={row.name}>
+                    <div><strong>{row.name}</strong><p>{row.note}</p></div>
+                    <div className="right-value"><strong>{row.band}</strong><p>Repair {money(row.repairCost)} · Lift {money(row.valueLift)} · Net {row.roi >= 0 ? "+" : ""}{money(row.roi)}</p></div>
+                  </div>
+                ))}
+              </Card>
+            </>
           )}
 
           {tab === "configuration" && (
@@ -450,8 +483,8 @@ function App() {
 
           {tab === "comps" && (
             <Card>
-              <h2>Comparable Sales</h2>
-              <p className="muted">Comps are scored and weighted to calculate the Base Comp Anchor.</p>
+              <h2>Comparable Market Support</h2>
+              <p className="muted">Verified sales, wholesale transactions, internal recovery data, and listing indicators are scored and weighted to calculate the Base Comp Anchor.</p>
               <div className="summary-row light"><Metric label="Weighted Comp Anchor" value={money(result.baseComp)} /><Metric label="Comp Quality" value={`${result.compQuality.toFixed(0)}%`} /><Metric label="Included Comps" value={comps.filter((c) => c.included).length} /></div>
               {comps.map((comp) => (
                 <div className="scenario" key={comp.id}>
@@ -487,16 +520,16 @@ function App() {
             <Card>
               <div className="report-title"><FileText /><div><h2>Equipment FMV Report</h2><p className="muted">Customer-ready valuation summary</p></div></div>
               <div className="summary-row light"><Metric label="Asset" value={initialAsset.header} /><Metric label="FMV Opinion" value={money(result.fmv)} /><Metric label="Recommended Disposition" value={nreDisposition.action} /></div>
-              <div className="summary-row light"><Metric label="FMV Reference Channel" value={fmvReferenceChannel} /><Metric label="Expected Net Recovery" value={money(nreDisposition.expectedNet)} /><Metric label="Confidence" value={`${result.confidence.toFixed(0)}%`} /></div>
+              <div className="summary-row light"><Metric label="Valuation Basis" value={valuationBasis} /><Metric label="Expected Net Recovery" value={money(nreDisposition.expectedNet)} /><Metric label="Confidence" value={`${result.confidence.toFixed(0)}%`} /></div>
               <h2>Valuation Opinion</h2>
-              <p>Based on comparable sales, qualified inspection data, configuration scoring, usage normalization, regional market conditions, repair economics, and channel performance, the fair market value of the subject asset is estimated at <strong>{money(result.fmv)}</strong>, with a reasonable range of <strong>{money(result.fmvLow)} to {money(result.fmvHigh)}</strong>. The NRE recommended disposition is <strong>{nreDisposition.action}</strong>, with expected net recovery of <strong>{money(nreDisposition.expectedNet)}</strong>.</p>
+              <p>Based on verified auction results, wholesale transactions, internal sale history, listing indicators, qualified inspection data, configuration scoring, usage normalization, regional market conditions, repair economics, and channel performance, the fair market value of the subject asset is estimated at <strong>{money(result.fmv)}</strong>, with a reasonable range of <strong>{money(result.fmvLow)} to {money(result.fmvHigh)}</strong>. The NRE recommended disposition is <strong>{nreDisposition.action}</strong>, with expected net recovery of <strong>{money(nreDisposition.expectedNet)}</strong>.</p>
               <h2>Methodology</h2>
               <p>The FMV Engine starts with a relevance-weighted comparable sales anchor of <strong>{money(result.baseComp)}</strong>, then applies a condition multiplier of <strong>{result.condition.label} / {initialAsset.conditionScore.toFixed(1)} / {result.condition.multiplier.toFixed(2)}x</strong>, configuration multiplier of <strong>{result.configMultiplier.toFixed(2)}x</strong>, usage multiplier of <strong>{result.usageMultiplier.toFixed(2)}x</strong>, and region multiplier of <strong>{result.regionMultiplier.toFixed(2)}x</strong>.</p>
-              <p><strong>Channel clarification:</strong> Retail is used as an FMV reference channel, but the disposition recommendation is Wholesale after targeted repair because this asset has a fair overall condition score and poor engine condition.</p>
+              <p><strong>Channel clarification:</strong> The FMV opinion is a market value estimate. The operating recommendation is Wholesale after targeted repair because this asset has a fair overall condition score and poor engine condition.</p>
               <h2>Review Flags</h2>
               {result.reviewFlags.length ? <ul>{result.reviewFlags.map((flag) => <li key={flag}>{flag}</li>)}</ul> : <p>No review flags.</p>}
               <h2>Disclaimer</h2>
-              <p className="disclaimer">This valuation is an estimated fair market value opinion based on available inspection data, comparable market evidence, configuration inputs, usage assumptions, and channel performance logic. It is not a guaranteed sale price, appraisal certification, or binding offer. Final recovery may vary based on buyer demand, timing, title status, repair completion, and market conditions.</p>
+              <p className="disclaimer">This valuation is an estimated fair market value opinion based on available inspection data, verified auction results, wholesale transactions, internal sale history, listing indicators, configuration inputs, usage assumptions, and channel performance logic. It is not a guaranteed sale price, appraisal certification, or binding offer. Final recovery may vary based on buyer demand, timing, title status, repair completion, and market conditions.</p>
               <button onClick={() => window.print()}>Export / Print PDF</button>
             </Card>
           )}
@@ -536,11 +569,37 @@ function App() {
         </div>
       )}
 
+      {showInspectionReport && (
+        <div className="modal-backdrop">
+          <div className="modal">
+            <h2>Inspection Report</h2>
+            <p><strong>File:</strong> {inspectionReport.fileName}</p>
+            <p><strong>Uploaded By:</strong> {inspectionReport.uploadedBy}</p>
+            <p><strong>Uploaded Date:</strong> {inspectionReport.uploadedDate}</p>
+            <p><strong>Status:</strong> {inspectionReport.status}</p>
+            <p><strong>Report ID:</strong> {inspectionReport.reportId}</p>
+            <div className="explain-box">
+              <strong>Demo report viewer</strong>
+              <p>In production, this window would display the actual uploaded PDF inspection report. The customer would be able to view, print, share, forward, or replace the stored report from the Condition tab.</p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => window.print()}>Print</button>
+              <button onClick={() => alert("Demo share link created for the inspection report.")}>Share</button>
+              <button onClick={() => alert("Demo forward action. In production, this would email the inspection report.")}>Forward</button>
+              <button className="secondary" onClick={() => setShowInspectionReport(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <footer>© 2026 Net Recovery Engine. All rights reserved.</footer>
     </div>
   );
 }
 
 createRoot(document.getElementById("root")).render(<App />);
+
+
+
 
 
