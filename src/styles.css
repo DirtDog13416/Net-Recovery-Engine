@@ -45,7 +45,7 @@ button {
   gap: 8px;
 }
 .upload-start {
-  min-height: 220px;
+  min-height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
