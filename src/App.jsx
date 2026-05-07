@@ -345,8 +345,10 @@ function App() {
           <Metric label="Channel Mix Difference" value={`${Math.round(totalChannelDifference / 2)}%`} />
         </div>
       </Card>
-<div className="upload-row">
-  <button onClick={() => setStarted(true)}>Upload Inspection Report</button>
+<div className="upload-start">
+  <button className="upload-start-button" onClick={() => setStarted(true)}>
+    Upload Inspection Report
+  </button>
 </div>
 
       {!started ? (
